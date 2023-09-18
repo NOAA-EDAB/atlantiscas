@@ -41,12 +41,12 @@ navbar:
     github:
       text: source code
       icon: fa-lg fa-github
-      href: https://github.com/user/repo
+      href: https://github.com/NOAA-EDAB/atlantiscas
 
 home:
   strip_header: true
   links:
-    - text: A link to X
-      href: some link
+    - text: Report a bug
+      href: https://github.com/NOAA-EDAB/atlantiscas/issues
   Authors:
     - text: Author 1

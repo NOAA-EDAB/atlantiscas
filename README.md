@@ -1,6 +1,6 @@
 # atlantiscas
 
-Part of the Communities at Sea project.
+A research project: Part of the Communities at Sea project.
 
 Exploratory research to investigate the impacts of climate on fishing behavior. This will be achieved by linking an Atlantis Ecosystem model to an economic model.
 
