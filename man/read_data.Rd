@@ -2,7 +2,7 @@
 % Please edit documentation in R/read_data.R
 \name{read_data}
 \alias{read_data}
-\title{Read in Gerets fleet data}
+\title{Read in processed fleet data}
 \usage{
 read_data()
 }
