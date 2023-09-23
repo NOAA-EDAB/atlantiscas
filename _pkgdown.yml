@@ -18,23 +18,28 @@ navbar:
     manuscript:
       text: Manuscript
       menu:
-      - text: APA6 PDF
-        href: manuscript/manuscript.pdf
+      - text: To Be Determined
+        href: #manuscript/manuscript.pdf
     articles:
-      text: Supplementary
+      text: Notebook
       menu:
-      - text: Supplementary
+      - text: Data QA/QC
+        href: articles/dataQAQC.html
+      - text: Data Exploration
         href: articles/ExploreFishingData.html
     slides:
-      text: Slides
+      text: Presentations
       menu:
-      - text: R Markdown slides
-        href: slides/slides.html
+      - text: MAFMC SSC Ecosystem WG (04,2022)
+        href: https://noaa-edab.github.io/presentations/20220428_SSCEcoWG_Gaichas.html#1
+      - text: MAFMC SSC Ecosystem WG (02,2023)
+        href: https://noaa-edab.github.io/presentations/20230227_SSCEcoWG_Beet.html#1
+        #href: #slides/slides.html
     posters:
       text: Posters
       menu:
-      - text: Conference 2019
-        href: posters/poster.html
+      - text: To Be Determined
+        href: #posters/poster.html
     reference:
       text: Functions
       href: reference/index.html
