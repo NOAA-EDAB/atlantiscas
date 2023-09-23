@@ -34,28 +34,32 @@
      
     <span class="caret"></span>
   </a>
-  <ul class="dropdown-menu" role="menu"><li>
-      <a href="../manuscript/manuscript.pdf">APA6 PDF</a>
-    </li>
+  <ul class="dropdown-menu" role="menu"><li class="dropdown-header">To Be Determined</li>
   </ul></li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Supplementary
+    Notebook
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../articles/ExploreFishingData.html">Supplementary</a>
+      <a href="../articles/dataQAQC.html">Data QA/QC</a>
+    </li>
+    <li>
+      <a href="../articles/ExploreFishingData.html">Data Exploration</a>
     </li>
   </ul></li>
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-    Slides
+    Presentations
      
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu"><li>
-      <a href="../slides/slides.html">R Markdown slides</a>
+      <a href="https://noaa-edab.github.io/presentations/20220428_SSCEcoWG_Gaichas.html#1" class="external-link">MAFMC SSC Ecosystem WG (04,2022)</a>
+    </li>
+    <li>
+      <a href="https://noaa-edab.github.io/presentations/20230227_SSCEcoWG_Beet.html#1" class="external-link">MAFMC SSC Ecosystem WG (02,2023)</a>
     </li>
   </ul></li>
 <li class="dropdown">
@@ -64,15 +68,13 @@
      
     <span class="caret"></span>
   </a>
-  <ul class="dropdown-menu" role="menu"><li>
-      <a href="../posters/poster.html">Conference 2019</a>
-    </li>
+  <ul class="dropdown-menu" role="menu"><li class="dropdown-header">To Be Determined</li>
   </ul></li>
 <li>
   <a href="../reference/index.html">Functions</a>
 </li>
       </ul><ul class="nav navbar-nav navbar-right"><li>
-  <a href="https://github.com/user/repo" class="external-link">
+  <a href="https://github.com/NOAA-EDAB/atlantiscas" class="external-link">
     <span class="fa fa-lg fa-github"></span>
      
     source code
@@ -99,13 +101,21 @@
         </td>
         <td><p>Compare landing from Geret to data used to calibrate atlantis</p></td>
       </tr><tr><td>
-          <p><code><a href="plot_data.html">plot_data()</a></code> </p>
+          <p><code><a href="fix_missing_ports.html">fix_missing_ports()</a></code> </p>
         </td>
-        <td><p>Read in gerets fleet data to visualize</p></td>
+        <td><p>Fix missing ports or incomplete ports</p></td>
+      </tr><tr><td>
+          <p><code><a href="get_port_lat_lon.html">get_port_lat_lon()</a></code> </p>
+        </td>
+        <td><p>Pull port lat and long address</p></td>
+      </tr><tr><td>
+          <p><code><a href="process_data.html">process_data()</a></code> </p>
+        </td>
+        <td><p>Process Gerets fleet data</p></td>
       </tr><tr><td>
           <p><code><a href="read_data.html">read_data()</a></code> </p>
         </td>
-        <td><p>Read in Gerets fleet data</p></td>
+        <td><p>Read in processed fleet data</p></td>
       </tr></tbody></table></div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">

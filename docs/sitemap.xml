@@ -7,6 +7,9 @@
     <loc>/articles/atlantiscas.html</loc>
   </url>
   <url>
+    <loc>/articles/dataQAQC.html</loc>
+  </url>
+  <url>
     <loc>/articles/ExploreFishingData.html</loc>
   </url>
   <url>
@@ -31,10 +34,22 @@
     <loc>/reference/compare_data.html</loc>
   </url>
   <url>
+    <loc>/reference/explore_ports.html</loc>
+  </url>
+  <url>
+    <loc>/reference/fix_missing_ports.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_port_lat_lon.html</loc>
+  </url>
+  <url>
     <loc>/reference/index.html</loc>
   </url>
   <url>
     <loc>/reference/plot_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/process_data.html</loc>
   </url>
   <url>
     <loc>/reference/read_data.html</loc>
