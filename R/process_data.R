@@ -5,6 +5,8 @@
 #'
 #' @return list of commercial and rec data
 #'
+#'@importFrom magrittr `%>%`
+#'
 #' @export
 
 #channel <- dbutils::connect_to_database("sole","abeet")
@@ -34,15 +36,17 @@ process_data <- function(){
 
 
   ## Read in commercial fishing data
-  data1 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_1996_2007.rds")) %>%
+  data1 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_Neus_Atlantis_com_1996_2007_Sept2023.rds")) %>%
     tibble::as_tibble() %>%
-    dplyr::rename(STATE = STATE1,
+    dplyr::rename(PORTID = PORT,
+                  STATE = STATE1,
                   PORT = PORTLND1)
 
-  data2 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_2008_2021.rds")) %>%
+  data2 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_Neus_Atlantis_com_2008_2021_Sept2023.rds")) %>%
     tibble::as_tibble()  %>%
     dplyr::mutate(NESPP3 = as.double(NESPP3))  %>%
-    dplyr::rename(STATE = STATE1,
+    dplyr::rename(PORTID = PORT,
+                  STATE = STATE1,
                   PORT = PORTLND1)  %>%
     dplyr::select(-DOCID)
 
@@ -79,9 +83,10 @@ process_data <- function(){
 
 
   ## read in rec landings
-  rec <-  readRDS(here::here("data-raw/fishing","REVENUEFILE_Neus_Atlantis_rec_1996_2021.rds"))  %>%
+  rec <-  readRDS(here::here("data-raw/fishing","REVENUEFILE_Neus_Atlantis_rec_1996_2021_Sept2023.rds"))  %>%
     tibble::as_tibble()  %>%
-    dplyr::rename(STATE = STATE1,
+    dplyr::rename(PORTID = PORT,
+                  STATE = STATE1,
                   PORT = PORTLND1)  %>%
     dplyr::mutate(Inside = NA,
                   DAY = NA,
