@@ -20,5 +20,6 @@ Imports:
     magrittr,
     readr,
     readxl,
+    stringr,
     tibble,
     tidyr
