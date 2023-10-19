@@ -35,6 +35,23 @@ pull_port_tables <- function(channel,write = F) {
                   STATE=STATEABB) %>%
     dplyr::distinct()
 
+  # FIX SPELLING MISTAKES IN PORT TABLES
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "ORRS ISLAND" & portTableCFDBS$STATE=="ME"] <- "ORR'S ISLAND"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "LONG ISLAND CUMBERLAND" & portTableCFDBS$STATE=="ME"] <- "LONG ISLAND"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "STUEBEN" & portTableCFDBS$STATE=="ME"] <- "STEUBEN"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "SALISBURY COVE" & portTableCFDBS$STATE=="ME"] <- "SALSBURY COVE"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "WESTERLEY" & portTableCFDBS$STATE=="RI"] <- "WESTERLY"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "BARINGTON" & portTableCFDBS$STATE=="RI"] <- "BARRINGTON"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "PERKINS COVE" & portTableCFDBS$STATE=="ME"] <- "OGUNQUIT"
+  portTableCFDBS$COUNTY[portTableCFDBS$PORT == "PERKINS COVE" & portTableCFDBS$STATE=="ME"] <- "YORK"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "DYERS BAY" & portTableCFDBS$STATE=="ME"] <- "STEUBEN"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "MATHAIS POINT" & portTableCFDBS$STATE=="VA"] <- "MATHIAS POINT"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "HAMPTON/SEABROOK" & portTableCFDBS$STATE=="NH"] <- "SEABROOK"
+#  portTableCFDBS$PORT[portTableCFDBS$PORTNM == "HARRIMANS POINT" & portTableCFDBS$STATE=="ME"] <- "HARRIMAN POINT"
+#  portTableCFDBS$COUNTY[portTableCFDBS$PORTNM == "HARRIMANS POINT" & portTableCFDBS$STATE=="ME"] <- "HANCOCK"
+
+
+
   #replace OTHER PORT with name of PORT
   portTableCFDBS$PORT <- gsub("OTHER ","",portTableCFDBS$PORT)
 
