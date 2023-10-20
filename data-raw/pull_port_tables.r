@@ -33,6 +33,7 @@ pull_port_tables <- function(channel,write = F) {
     dplyr::rename(PORTID = PORT,
                   PORT= NewPORT,
                   STATE=STATEABB) %>%
+    dplyr::mutate(PORT=trimws(PORT)) %>%
     dplyr::distinct()
 
   # FIX SPELLING MISTAKES IN PORT TABLES
@@ -42,13 +43,14 @@ pull_port_tables <- function(channel,write = F) {
   portTableCFDBS$PORT[portTableCFDBS$PORT == "SALISBURY COVE" & portTableCFDBS$STATE=="ME"] <- "SALSBURY COVE"
   portTableCFDBS$PORT[portTableCFDBS$PORT == "WESTERLEY" & portTableCFDBS$STATE=="RI"] <- "WESTERLY"
   portTableCFDBS$PORT[portTableCFDBS$PORT == "BARINGTON" & portTableCFDBS$STATE=="RI"] <- "BARRINGTON"
-  portTableCFDBS$PORT[portTableCFDBS$PORT == "PERKINS COVE" & portTableCFDBS$STATE=="ME"] <- "OGUNQUIT"
   portTableCFDBS$COUNTY[portTableCFDBS$PORT == "PERKINS COVE" & portTableCFDBS$STATE=="ME"] <- "YORK"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "PERKINS COVE" & portTableCFDBS$STATE=="ME"] <- "OGUNQUIT"
+  portTableCFDBS$COUNTY[portTableCFDBS$PORT == "OGUNQUIT" & portTableCFDBS$STATE=="ME"] <- "YORK"
   portTableCFDBS$PORT[portTableCFDBS$PORT == "DYERS BAY" & portTableCFDBS$STATE=="ME"] <- "STEUBEN"
-  portTableCFDBS$PORT[portTableCFDBS$PORT == "MATHAIS POINT" & portTableCFDBS$STATE=="VA"] <- "MATHIAS POINT"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "MATHAIS POINT" & portTableCFDBS$STATE=="VA"] <- "DAHLGREN"
   portTableCFDBS$PORT[portTableCFDBS$PORT == "HAMPTON/SEABROOK" & portTableCFDBS$STATE=="NH"] <- "SEABROOK"
-#  portTableCFDBS$PORT[portTableCFDBS$PORTNM == "HARRIMANS POINT" & portTableCFDBS$STATE=="ME"] <- "HARRIMAN POINT"
-#  portTableCFDBS$COUNTY[portTableCFDBS$PORTNM == "HARRIMANS POINT" & portTableCFDBS$STATE=="ME"] <- "HANCOCK"
+  portTableCFDBS$PORT[portTableCFDBS$PORT == "HARRIMANS POINT" & portTableCFDBS$STATE=="ME"] <- "BROOKLIN"
+  portTableCFDBS$COUNTY[portTableCFDBS$PORT == "BROOKLIN" & portTableCFDBS$STATE=="ME"] <- "HANCOCK"
 
 
 
@@ -56,7 +58,7 @@ pull_port_tables <- function(channel,write = F) {
   portTableCFDBS$PORT <- gsub("OTHER ","",portTableCFDBS$PORT)
 
   if(write) {
-    saveRDS(portTableCFDBS,here::here("data-raw/portTableCFDBS"))
+    saveRDS(portTableCFDBS,here::here("data-raw/portTableCFDBS.rds"))
   }
 
   return(list(portsCFDBS=portTableCFDBS,portsVTR=portTableVTR))
