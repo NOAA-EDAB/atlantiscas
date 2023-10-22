@@ -7,3 +7,6 @@ inst/doc
 
 # user settings
 *.Rproj
+
+# folders
+other
