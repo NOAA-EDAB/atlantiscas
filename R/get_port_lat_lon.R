@@ -10,35 +10,17 @@
 
 
 
-get_port_lat_lon <- function(portData){
+get_port_lat_lon <- function(portData,city=NULL,county=NULL,state=NULL){
 
   osm <- tidygeocoder::geocode(portData,
-                        city=portData$PORT,
-                        county=portData$PORT_COUNTY_NAME,
-                        state = STATE,
+                        city=city,
+                        county=county,
+                        state = state,
                         lat=lat,
                         long= lon,
                         return_input = F,
                         method = "osm")
 
-  census <- tidygeocoder::geocode(portData,
-                          city=portData$PORT,
-                          county=portData$PORT_COUNTY_NAME,
-                          state = STATE,
-                          lat=lat,
-                          long= lon,
-                          return_input = F,
-                          method = "census")
-
-  arcgis <- tidygeocoder::geocode(portData,
-                              city=portData$PORT,
-                              county=portData$PORT_COUNTY_NAME,
-                              state = STATE,
-                              lat=lat,
-                              long= lon,
-                              return_input = F,
-                              method = "arcgis")
-
-  return(list(osm=osm,census=sensus,arcgis=arcgis))
+  return(osm)
 
 }
