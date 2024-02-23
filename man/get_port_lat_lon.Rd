@@ -4,7 +4,7 @@
 \alias{get_port_lat_lon}
 \title{Pull port lat and long address}
 \usage{
-get_port_lat_lon(portData)
+get_port_lat_lon(portData, city = NULL, county = NULL, state = NULL)
 }
 \arguments{
 \item{portData}{Data frame. Each row is Portname, County, State}

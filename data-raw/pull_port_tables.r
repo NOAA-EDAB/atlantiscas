@@ -2,7 +2,7 @@
 #'
 #' From VTR and CFDBS
 #'
-#' @param channel A connection object from dbutils::connect_to_data_base`
+#' @param channel A connection object from dbutils::connect_to_database`
 #' @param write. Boolean. Write output to file
 #'
 
