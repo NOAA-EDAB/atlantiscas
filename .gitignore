@@ -10,3 +10,7 @@ inst/doc
 
 # folders
 other
+
+# files
+*.png
+*.html
