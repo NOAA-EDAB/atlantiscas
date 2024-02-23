@@ -1,13 +1,12 @@
 #' Read in processed fleet data
 #'
-#' Read in fishing data, fix problems, add lat, lon to ports and other
-#' data cleaning#'
+#' Processing in process_data function
 #'
 #' @return list of commercial and rec data
 #'
 #' @export
 
-#channel <- dbutils::connect_to_database("sole","abeet")
+#channel <- dbutils::connect_to_database("nefscdb1","user")
 
 read_data <- function(){
 
