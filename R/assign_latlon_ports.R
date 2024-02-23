@@ -4,6 +4,9 @@
 #'
 #' Need to deal with Recreational data
 #'
+#'@param dat data frame. This is output from process_data
+#'@param saveToFile boolean. Save data set to rds file
+#'
 #'
 #' @return NULL
 #' files are written to data-raw
@@ -15,13 +18,13 @@
 # 19358 missing port ids
 
 
-assign_latlon_ports <- function(){
+assign_latlon_ports <- function(dat,saveToFile=F) {
 
   # read in landings data
-  a <- atlantiscas::read_data()
+  #dat <- atlantiscas::read_data()
 
   # deal with ports in states that lie within model
-  neusData <- a$data %>%
+  neusData <- dat$data %>%
     dplyr::filter(STATE %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA")) %>%
     dplyr::mutate(PORTID = as.numeric(PORTID)) %>%
     dplyr::mutate(PORT = dplyr::case_when(PORT == "HAMPTON BAY" ~ "HAMPTON BAYS",
@@ -32,7 +35,7 @@ assign_latlon_ports <- function(){
   neusDataNA <- neusData %>%
     dplyr::filter(is.na(PORTID))
 
-  neusOutside <- a$data %>%
+  neusOutside <- dat$data %>%
     dplyr::filter(!(STATE %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA"))) %>%
     dplyr::mutate(PORTID = as.numeric(PORTID))
 
@@ -180,10 +183,7 @@ assign_latlon_ports <- function(){
     dplyr::filter(is.na(lat))
 
   # these ports exist in the data already
-  # replace PORT name and STATE with corrct name
-
-
-
+  # replace PORT name and STATE with corrct nam
 
   # missingports$newcounty[missingports$ORIGPORT =="STUEBEN" & missingports$ORIGSTATE =="ME"] <- "STEUBEN"
   #
@@ -222,12 +222,7 @@ assign_latlon_ports <- function(){
 
   ## Check again for PORTID dups
 
-
-
   ##############################
-
-
-
 
   # just select valid PORTS
   osm <- osmm %>%
@@ -335,9 +330,12 @@ assign_latlon_ports <- function(){
   az <- neusDataFinal %>%
     dplyr::left_join(.,osmwrite, by = "PORTID")
 
+  if (saveToFile) {
+    saveRDS(az,here::here("data-raw/REVENUE_cleanports.rds"))
+    saveRDS(neusOutside,here::here("data-raw/REVENUE_outsidemodel.rds"))
+  }
 
-  saveRDS(az,here::here("data-raw/REVENUE_cleanports.rds"))
-  saveRDS(neusOutside,here::here("data-raw/REVENUE_outsidemodel.rds"))
+  return(list(neus=az,noneus=neusOutside))
 
   ## Deal with rec data
 
