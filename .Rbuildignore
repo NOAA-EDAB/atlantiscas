@@ -6,3 +6,5 @@
 ^slides$
 ^posters$
 ^vignettes/som\.Rmd$
+^docs$
+^pkgdown$
