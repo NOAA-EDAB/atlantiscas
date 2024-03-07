@@ -1,0 +1,295 @@
+---
+title: "Atlantis plans"
+format: html
+editor: visual
+---
+
+## Atlantis Plans
+
+### packages
+
+1.  Phytoplanton forcing files develop an internal package. Map out workflow, pull scripts from R folder, create package.
+
+2.  Post processing into a package. Split up processing script. Develop in diagnostics package
+
+3.  Calibration tools for selecting selectivity curves
+
+## Fishing fleets
+
+Economics integrated.
+
+My role: get fishing module up and calibrated. Read harvest module in manual
+
+Fleet definitions in atlantis to community at sea.
+
+Where home port is and what fleet is fishing (target species, and discards) Home port, gear type, vessel size defined fleet. Effort time series forced. Selectivity, swept area, catchabilty, location
+
+Define Effort per box
+
+Scenario base: v6665 calibrated model with fishing fleets in historical setting. Understand how fleets work in atlantis and link with NERIOM model
+
+Change fleet parameters to understand how impacts are reflected in atlantis. Selectivities. change effort magnitude but fleets fish in same locations.
+
+Alternatives:
+
+Calibration work. Temperature dependency in spatial redistribution rather than SDM work. Post Grad work. /if we get funded for climate work
+
+Fleets need to be
+
+-   Unique
+-   not calibrated to be overly sensitive
+-   70 or so fleets as defined Lauren Rogers paper
+-   Fay et al uses NERIOM and atlantis
+
+Jacob Icelandic model started to implement Effort based fleets.
+
+isimpacted vs isfished? few species are not fished but are impacted flagincmort = 0 (incidental mortality is off, bycatch) flagfinfish = 1 (direct fishing is on)
+
+## NERIOM
+
+Input: county level landings and effort Output: evaluation of economic impacts of atlantis scenarios
+
+Language: how run: Where is it run: who manages it:
+
+## Kick Off session May 8, 2023
+
+### Parameterize fleets
+
+Fixed effort fishing scenario, spatial footprint, gear, selectivity. No dynamic changes in behavior. Parameterize fleets to port level.
+
+[Fay et al](https://www.frontiersin.org/articles/10.3389/fmars.2019.00133) - Economic and Ecosystem Effects of Fishing on the Northeast US Shelf
+
+[Rogers](https://www.nature.com/articles/s41558-019-0503-z) - Shifting habitats expose fishing communities to risk under climate change
+
+VTR data back to 1996. Parameterize fleets over the last decade of VTR data
+
+Selectivity curves and quirks of biology and fleet interaction need to be looked at. Not fishing areas differently than in calibrated model.
+
+### Devise scenarios that are relevant to region.
+
+Business as usual, no change in effort
+
+Effort multipliers, lower and higher, by micro fleet. Fleet interactions. Which fleets consistent with management objectives.
+
+Other scenarios, further down the road: Target species change, where fishing changes based on species distribution. Switching gear types.
+
+Gavin ONR funding to mesh with this work. Use results to develop simpler models to do some emulation to help inform atlantis down the road.
+
+### Linking to NERIOM
+
+What are constraints to link to NERIOM? More aggregated model. Major ports in each state. Takes second to run NERIOM
+
+One port per state. Capture major ports and gear types.
+
+Each state has all major gear types.
+
+Output from atlantis -\> NERIOM
+
+landings (not catch) by gear type and port/state (aggregate over vessel)
+
+Create a shiny app to display results. Confidential data?
+
+### SOE indicators
+
+Link SOE port level indicators to atlantis
+
+Fishing engagement (total landings) an reliance (landings/population) , change from current, not absolute
+
+Impacts of fishery to community.
+
+If we change effort in some way, where is impact to communities?
+
+## Atlantis parameters
+
+Currently there are 28 fleets in NEUS-Atlantis (left over from v1.0).
+
+Note: indented paragraphs indicate current model parameter values
+
+-   `flag_fisheries_on` (at_run.prm) - Global param. Value = 1
+
+-   `isImpacted` (functional goroups file) - Value = 1 if affected by fishing (directly or indirectly, eg. bycatch)
+
+    > All set to 1 except PL,DF,PS,ZM,ZS,PB,BB,BO,DL,DR,DC
+
+-   `fleetXXX_tStart` (at_harvest.prm) - Day of the model run when a fishery YYY starts operations with specified fleet.
+
+    > All \_start values are 0
+
+-   `fleetXX_tEnd` (at_harvest.prm) - Day of the model run when a fishery YYY ends operations with a specified fleet
+
+    > All \_tend values are 100000000
+
+-   `flagXXXday` (at_biology.prm) - activity during 24 hr period. Value = 0 (only at night), 1 (only day), 2 (all time). Separate values for juvenile fishery
+
+    > All set to 2 except:
+    >
+    > Value = 0: MPF, SHK, OHK, SQ, (j)LSQ, (j)ISQ, (j)NSH, (j)OSH, DF
+    >
+    > Value = 1. SB, PIN
+
+-   `flagfishXXX` (at_harvest.prm) - Legacy code. Set all fished species to 1.
+
+    > All set to 1.
+    >
+    > However in groups.csv following set to 0, MB,SG,BC,ZG,PL,DF,PS,ZM,ZS,PB,BB,BO,DL,DR,DC
+
+-   `flagfinfish` (at_harvest.prm) Global. Dependency of active fishing (`flag_fisheries_on = 1`, run.prm). `flagfinfish = 1` (direct fishing) or `flagincidmort = 1` (incidental).
+
+    > Value = 1
+
+**Manual says `Atlantis will apply EITHER direct fishing or incidental` Should be BOTH?**
+
+-   `flagincidmort` (at_harvest.prm) Global. If set to 1 used in conjuncrtion with `FCcocatchXX` to determine bycatch (unless dynamic fishing is implemented, then additional parametes are used)
+
+    > Value = 0
+
+-   `flag_access_thru_wc_XXX` (at_harvest.prm) Whether a fishery has access to fish in the entire water column (e.g. do trawl doors remain open as the gear moves up/down through the water column there by interacting with species who do not live at the depth the trawl is most actively being towed)
+
+    > All Values = 1
+
+**Check to see if this is valid**
+
+-   `flaghabitat_XXX` (???) Which habitat patchiness equation (Dynamic fishing only)
+
+    > Not specified
+
+-   `XXX_flagdempelfishery` (at_harvest.prm) Demersal fishery = 1, Pelagic fishery = 0.(Dynamic fishing)
+
+    > All Values = 0 (Even though some fleets are pelagic)
+
+-   `k_mismatch` (Global) Reduction in effectiveness of gear due to mismatch in water column distribution of gear and vertebrates. This positional scalar downscales the availability of target species if they are marked as demersal (pelagic) and the gear is marked as pelagic (demersal).
+
+    > Value = 0
+
+-   `habitat_XXX` (at_biology.prm) Binary array indicating if fishing is excluded from certain habitats.
+
+    > Each species is described by a vector of 11 (types of habitat) values.
+    >
+    > Habitat typs: SCA, QHG, CLA, BFF, MA, SG, MB, reef, flat, soft, canyon
+
+**Does a value of zero indicate fishing is excluded excluded?** **Current model has text indicating which habitats each group prefers. Value of 1 = group lives on habitat. Need to sort this out**
+
+-   `XXX_mindepth`,`XXX_maxdepth` (at_biology.prm) Min and max depth fishery operates.
+
+    > All mindepth values = 0
+    >
+    > Maxdepth values most are 5000 or 1900. Some 255,800,25,50,100,200
+
+## Forced catch
+
+May need to change some of these when we move to providing effort as driver of catch
+
+-   `flagimposeglobal`(at_harvest.prm) Global. Flag to indicate forced time series of catch Values = (0,1,2,3,4)
+
+    > Value = 1
+
+-   `flagimposecatch_XXX` (at_harvest.prm) Vector of length = \# fisheries in `fisheries.csv`. Only applicable if Forcing catch time series. Values = (0,1,2,3,4)
+
+    > Currently one fleet with forced catch. Vector = \[1, 0, ..., 0\] (27 zeros to account for 28 fleets defined in fleets.csv)
+
+-   `CatchTS_agedistrib_XXX` (at_harvest.prm) How to distribute total forced catch time series across age groups. (must sum to 1)
+
+    > Vector of proportions. Length based on number of age classes
+
+-   `imposecatchstart_XXX`,`imposecatchend_XXX` (at_harvest.prm) Time period (atlantis day) over which to force catch. Vector of length = \# fisheries
+
+    > Values 0, 100000000
+
+-   `reportscale_XXX` (at_harvest.prm) Scalar applied to catch to represent underreporting
+
+    > All values = 1 (no over reporting)
+
+-   `fleet_flagmanage` (at_harvest.prm) Adaptive management. Can force catch then switch to dynamic fishing and apply management action durng this period
+
+    > Values all 0
+
+-   `fleet_start_manage`,`fleet_end_manage` (at_harvest.prm) Atlantis days that determine when to impose management
+
+    > Values = \[0, 100000000\]
+
+-   `flagmpa` (at_harvest.prm) Global. spatial management
+
+    > Value = 0
+
+-   `fleet_flagmpa` (at_harvest.prm) spatial management by fleet. Only active if `flagmpa = 1`
+
+## Fishing mortality
+
+User defined non dynamic fishing mortality. Define fishing mortalities that get applied to population at each time point and distributed across ages.
+
+-   `flagF_XXX` (at_harvest.prm) Allow species specific fishing mortality by fleet
+
+    > All Values = \[0, 0, ..., 0\]
+
+-   `mFC_XXX` (at_harvest.prm) fishing mortality rate (proportion of biomass per day)
+
+    > All Values = \[0, 0, ..., 0\]
+
+-   `XXX_mFC_startage`,`XXX_mFC_endage` (at_harvest.prm) Minimum and maximum ages at which fishing pressure applies for each fleet
+
+    > All values (vector) = 0 for start age
+    >
+    > \_endage not present
+
+-   `flag_sel_with_mFC` (at_harvest.prm) Global. Size based selectivity flag. Boolean
+
+    > Value = 0
+
+-   `YYY_selcurve` fleet specific selectivity curve. Additional parameters based on the option type
+
+    > Value = 0 for all fleets
+
+-   `TAC_XXX` (at_harvest.prm) Initial TAC values for each species
+
+    > All value = 1000000000
+
+-   `flag_stop_F_tac` (at_harvest.prm) Global. Boolean. Fishing stops once TAC exceeded if value = 1.
+
+    > Value = 0
+
+-   `YYY_flagmanage`(at_harvest.prm)
+
+    > All Values = 0
+
+-   `TripLimit_XXX`(at_harvest.prm)
+
+    > All Vectors = 1000000000
+
+-   `flaginfringe` (at_harvest.prm) Global
+
+    > Value = 0
+
+-   `fleet_infringe` (at_harvest.prm)
+
+    > All Values = 0
+
+-   `flagchangeF`,`flagFchange_XXX`,`XXX_mFC_changes`,`mFCchange_start_XXX`,`mFCchange_period_XXX`,`mFCchange_mult_XXX` All related to changing F temporally
+
+    > Values = 0
+
+## Dynamic Fishing
+
+Using Effort. Setting up the effort (chapter 15.4, p21)
+
+Catch will depend on Gear used, selectivity, fish abundance, distribution, catchability, time spent in each box. Management rules can then limit the effort (if implemented)
+
+Effort matrix - Days each fishery will operate in each box. Catch determined by gear parameters, vertical and horizontal overlap between species and fishery, and species escapement and catchability parameters
+
+-   `fleet_sweptarea` (at_harvest.prm) Total volume of cell the fishery can sweep
+
+    > All Values = 0
+
+-   `flagescapement_XXX` (at_harvest.prm) No escapement (0) constant escapement (1, provide proportions in `p_escape_XXX`), size-based escapement (2, provide `Ka_escape_XXX`, `Kb_escape_XXX`)
+
+    > Values = 1
+
+-   `p_escape_XXX` (at_harvest.prm) Vector of proportions.
+
+    > All Values = 0
+
+-   `Ka_escape_XXX`,`Kb_escape_XXX`
+
+
+## Absent from at_harvest
+
+`YYY_mEff_thresh level` - Level of CPUE below which effort displacement occurs

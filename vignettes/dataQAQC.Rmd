@@ -1,0 +1,82 @@
+---
+title: "Data Cleaning"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(atlantiscas)
+library(magrittr)
+```
+
+The fishing data is a combination of VTR (1996-2007) and DMIS (2008-2021) data.
+
+```{r sampleData, echo = F}
+# read sample data and display it in a table
+sampleData <- readRDS(here::here("data-raw/sampleFishingData.rds")) %>% 
+  dplyr::select(Year,PORT,STATE,GEARCODE,GEARCAT, NESPP3,SPPNM)
+DT::datatable(sampleData)
+```
+
+
+Both have different lookup tables and formatting for species names (SPPNM), port names (PORT), gear categories (GEARCAT)
+
+## Ports
+
+* Port lok up tables lack latitude and longitude
+  * Use port, county, state to geocode lat and lon using open street maps
+* Ports have duplicate entries with spelling typos
+  * eg. harwichport, harwich port. These were hand fixed
+  
+  
+All PORTID within the Atlantis domain were identified. Other PORTIDs were grouped into either Canadian ports (north of the atlantis domain) or southern ports (south of atlantis domain)
+
+PORTID was used to match PORTNM,COUNTY,STATE from the CFDBS.PORT table (VTR.VLPORTSYN contains too many typos). Port names were then used to find lat and lon values using `tidygeocoder` usig open street maps and online service `geocode.maps.co`. Many port names and/or counties had to be edited due to spelling errors, incorrect information, inconsistent formatting, or missing information. For example:
+
+  * SALISBURY COVE, ME -> SALSBURY COVE, ME (spelling)
+  * (TOWN OF) -> (inconsistent formatting -removed text "(TOWN OF)" from port name)
+  * PERKINS COVE, CUMBERLAND, ME -> OGUNQUIT, YORK, ME (incorrect)
+  * OTHER FAIRFIELD, FAIRFIELD, CT -> FAIRFIELD, FAIRFIELD, CT (missing port info)
+  * COMBS CREEK, ST. MARYS, MD -> NA, ST.MARY'S, MD (not found on maps)
+  * DUKES, DUKES, MA -> NA, DUKES, MA (no such port)
+
+## Species 
+
+* Species have duplicate names with different formats
+  * All species with NK or (NK) (Not known) in their name were formatted to NK SPECIESNAME
+  * All species separated by commas (eg DRUM, BLACK) were formatted as BLACK DRUM
+  * LOBSTER was replaced by AMERICAN LOBSTER
+  * LOLIGO SQUID was replaced by LONGFIN SQUID
+  * OTHER FISH have 2 codes (526,529)
+* Several NESPP3 codes are catch alls. For example:
+  * NS SQUIDS
+    * 803: MKTNM = UNCLASSIFIED 
+    * split landings 50/50 into atlantis groups ISQ/LSQ)
+  * SKATES
+    * 365: MKTNM = UNCLASSIFIED, SMALL (WINGS), LARGE (WINGS)
+    * Split into SK,LSK,WSK (proportions?)
+  * OTHER FISH
+    * 526: MKTNM = HEADS, FOOD, SPAWN
+    * 529: MKTNM = INDUSTRIAL
+  * NK DOGFISH 
+    * 350: MKTNM: ROUND, TAILS, DRESSED, FINS
+  * NK SHARK
+    * 359: UNCLASSIFIED DRESSED/ROUND, FINS DRIED/FRESH/FROZEN,GUTTED,CHUNKS
+  * NK CLAM
+    * 764:
+  * HAKE MIX RED & WHITE
+    * 155:
+  * SILVER&OFFSHIREHAKE MIX
+    * 507:
+  
+  
+## GEARS
+  
+* Gear Codes have different Gear Categories assigned depending on VTR or DMIS data
+  *   Use DMIS codes
+
