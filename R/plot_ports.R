@@ -5,8 +5,7 @@
 #'
 #'
 
-library(magrittr)
-#plot_ports <- function() {
+plot_ports <- function() {
   # Read in landings by port
   neusData <- readRDS(here::here("data-raw/REVENUE_cleanports.rds"))
   # tempfix for rhode island
@@ -52,3 +51,4 @@ library(magrittr)
       ggplot2::ggsave(here::here("data-raw",paste0(astate,".png")))
 
   }
+}

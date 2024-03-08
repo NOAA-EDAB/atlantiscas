@@ -47,11 +47,15 @@ process_data <- function(){
     dplyr::select(-first,-last,-SPPNM) |>
     dplyr::rename(SPPNM = SP)
 
-
+  rm(data1)
   # join data
   # change data type
   # reorder NK species from CLAM NK to NK CLAM
-  commercialData <- rbind(fixdata1,data2) |>
+  commercialData <- rbind(fixdata1,data2)
+  rm(data2)
+  rm(fixdata1)
+
+  commericalData <- commercialData |>
     dplyr::mutate(Year = as.numeric(Year),
                   TRIPID = as.numeric(TRIPID)) |>
     tidyr::separate(col = SPPNM,into = c("first","last"),sep=" NK",remove=F) |>
@@ -60,17 +64,57 @@ process_data <- function(){
     dplyr::select(-first,-last,-SPPNM) |>
     dplyr::rename(SPPNM = SP)
 
+  #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
+  commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+
+  commercialData <- assign_species_codes(commercialData)
   ## clean up species
-  # read in neus groups # pull from neus-atlantis repo
+  # read in neus groups. pull from neus-atlantis repo
 
-  atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_1_5_groups_svspp_nespp3.csv")
+  #atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
 
-  if (nrow(commercialData |>
-    dplyr::filter(is.na(NESPP3)))>0){
-    stop("There will be a join problem due to NAs")
-  }
-  a <- dplyr::left_join(commercialData,atlantisGroups ,by ="NESPP3") |>
-    dplyr::select(-SVSPP)
+  ## save intermediate data for test scallops
+  scallopData <- fullData |>
+    dplyr::filter(Code == "SCA")
+  saveRDS(scallopData,here::here("data/scallopData.rds"))
+
+
+
+  # current data not assigned to an atlantis group
+  dataToSplit <-  fullData |> dplyr::filter(is.na(Code))
+  # plot of this data
+  dataToSplit |>
+    dplyr::group_by(Year,NESPP3,SPPNM) |>
+    dplyr::summarise(lbs = sum(InsideLANDED),
+                     .groups = "drop") |>
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=lbs)) +
+    ggplot2::facet_wrap(~as.factor(SPPNM),scales = "free_y")
+
+  # look a skates
+  fullData |>
+    dplyr::filter(grepl("SKATE",SPPNM)) |>
+    dplyr::group_by(Year,NESPP3,SPPNM) |>
+    dplyr::summarise(lbs = sum(InsideLANDED),
+                     .groups = "drop") |>
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::facet_wrap(~SPPNM)
+
+  # look a squid
+  fullData |>
+    dplyr::filter(grepl("SQUID",SPPNM)) |>
+    dplyr::group_by(Year,NESPP3,SPPNM) |>
+    dplyr::summarise(lbs = sum(InsideLANDED),
+                     .groups = "drop") |>
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::facet_wrap(~SPPNM)
+
+
+
+  # deal with missing codes
+  #
 
 
   ## read in rec landings

@@ -10,6 +10,5 @@ read_data()
 list of commercial and rec data
 }
 \description{
-Read in fishing data, fix problems, add lat, lon to ports and other
-data cleaning#'
+Processing in process_data function
 }
