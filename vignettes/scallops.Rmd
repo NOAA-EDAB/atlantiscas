@@ -1,0 +1,138 @@
+---
+title: "scallops"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scallops}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(atlantiscas)
+```
+
+## Trial for Atlantis conversion
+
+First look at the data to see how many gear types, and which ports landed the scallops.
+
+The fishing data were processed and passed through minimal QA/QC. All ports were assigned lat and lons (as best as possible), all landings were assigned to an atlantis group.
+
+SCA is the atlantis group for scallops.
+
+Gear Categories identified, in the data set, as scallop vessels were
+
+* TRAWL BOTTOM SCALLOP
+* DREDGE SCALLOP
+* Scallop Gear 
+
+These GEARCAT(s) were filtered to provide the following output
+
+```{r scallopData, echo = F}
+sca <- readRDS(here::here("data/scallopData.rds")) |> 
+  dplyr::mutate(Year = as.integer(Year))
+
+sca |> dplyr::distinct(GEARCAT,GEARCODE) |> 
+  dplyr::arrange(GEARCAT) |> 
+  knitr::kable()
+```
+
+## Landings
+
+The landings of Scallops and associated bycatch
+
+```{r plotland1, echo = F}
+landings <- sca |> 
+  dplyr::group_by(Year,Functional_Group) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop")
+                     
+speciesLanded <- landings |> 
+  dplyr::group_by(Functional_Group) |> 
+  dplyr::summarise(nyrs = dplyr::n(),
+                   .groups = "drop") |> 
+  dplyr::filter(nyrs > 1) |> 
+  dplyr::pull(Functional_Group)
+
+landings |> 
+  dplyr::filter(Functional_Group %in% speciesLanded) |> 
+  ggplot2::ggplot() + 
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::facet_wrap(~Functional_Group)
+
+```
+
+Total scallop landings compared with atlantis forcing time series
+
+```{r plotcompare, echo = F}
+landings <- sca |> 
+  dplyr::filter(Code == "SCA") |>  
+  dplyr::group_by(Year,STATE) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop")
+
+```
+
+
+Table of landings
+
+```{r plot land2, echo =F}
+
+sca |> 
+  dplyr::group_by(Functional_Group) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop") |> 
+  dplyr::arrange(desc(lbs)) |> 
+  kableExtra::kable()
+```
+
+
+Landings by state
+
+```{r plotland3, echo = F}
+landings <- sca |> 
+  dplyr::filter(Code == "SCA") |>  
+  dplyr::group_by(Year,STATE) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop")
+                     
+landings |> 
+  ggplot2::ggplot() + 
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::facet_wrap(~STATE)
+
+```
+
+Landings by port
+
+```{r plotland4, echo=F}
+landings <- sca |> 
+  dplyr::filter(Code == "SCA") |>  
+  dplyr::group_by(Year,STATE,PORTLANDED) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop")
+
+ports <- landings |> 
+  dplyr::group_by(PORTLANDED,STATE) |> 
+  dplyr::summarise(lbs = sum(lbs),
+                   .groups = "drop") |> 
+  dplyr::arrange(desc(lbs)) |> 
+  dplyr::slice(1:10) |> 
+  dplyr::pull(PORTLANDED)
+
+
+landings |> 
+  dplyr::filter(PORTLANDED %in% ports) |> 
+  ggplot2::ggplot() + 
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::facet_wrap(~PORTLANDED)
+
+```
+
+

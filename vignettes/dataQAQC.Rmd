@@ -11,14 +11,13 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(atlantiscas)
-library(magrittr)
 ```
 
 The fishing data is a combination of VTR (1996-2007) and DMIS (2008-2021) data.
 
 ```{r sampleData, echo = F}
 # read sample data and display it in a table
-sampleData <- readRDS(here::here("data-raw/sampleFishingData.rds")) %>% 
+sampleData <- readRDS(here::here("data-raw/sampleFishingData.rds"))  |>  
   dplyr::select(Year,PORT,STATE,GEARCODE,GEARCAT, NESPP3,SPPNM)
 DT::datatable(sampleData)
 ```
@@ -28,7 +27,7 @@ Both have different lookup tables and formatting for species names (SPPNM), port
 
 ## Ports
 
-* Port lok up tables lack latitude and longitude
+* Port look up tables lack latitude and longitude
   * Use port, county, state to geocode lat and lon using open street maps
 * Ports have duplicate entries with spelling typos
   * eg. harwichport, harwich port. These were hand fixed
