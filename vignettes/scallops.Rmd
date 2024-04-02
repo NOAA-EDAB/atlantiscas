@@ -18,6 +18,14 @@ knitr::opts_chunk$set(
 library(atlantiscas)
 ```
 
+## Atlantis parameterization
+(Codebase v6681)
+
+1. Forced effort time series (days $day^{-1}$) - effortmodel = 11 (Running into segmentation error issues)
+
+2. YYY_effort > 0 (Fixed total effort, days $day^{-1}$)
+
+
 ## Trial for Atlantis conversion
 
 First look at the data to see how many gear types, and which ports landed the scallops.
@@ -135,4 +143,22 @@ landings |>
 
 ```
 
+Landings by Atlantis Box
 
+```{r plotland4, echo=F}
+landings <- sca |> 
+  dplyr::filter(Code == "SCA") |>  
+  dplyr::group_by(Year,Area) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop") |>
+  tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
+  dplyr::mutate(Box = as.numeric(Box))
+
+
+landings |> 
+  ggplot2::ggplot() + 
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::facet_wrap(~Box) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
+
+```
