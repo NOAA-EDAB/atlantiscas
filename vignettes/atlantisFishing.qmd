@@ -99,6 +99,8 @@ Impacts of fishery to community.
 
 If we change effort in some way, where is impact to communities?
 
+## How to parameterize model
+
 ## Atlantis parameters
 
 Currently there are 28 fleets in NEUS-Atlantis (left over from v1.0).
@@ -107,7 +109,7 @@ Note: indented paragraphs indicate current model parameter values
 
 -   `flag_fisheries_on` (at_run.prm) - Global param. Value = 1
 
--   `isImpacted` (functional goroups file) - Value = 1 if affected by fishing (directly or indirectly, eg. bycatch)
+-   `isImpacted` (functional groups file) - Value = 1 if affected by fishing (directly or indirectly, eg. bycatch)
 
     > All set to 1 except PL,DF,PS,ZM,ZS,PB,BB,BO,DL,DR,DC
 
@@ -139,7 +141,7 @@ Note: indented paragraphs indicate current model parameter values
 
 **Manual says `Atlantis will apply EITHER direct fishing or incidental` Should be BOTH?**
 
--   `flagincidmort` (at_harvest.prm) Global. If set to 1 used in conjuncrtion with `FCcocatchXX` to determine bycatch (unless dynamic fishing is implemented, then additional parametes are used)
+-   `flagincidmort` (at_harvest.prm) Global. If set to 1 used in conjunction with `FCcocatchXX` to determine bycatch (unless dynamic fishing is implemented, then additional parameters are used)
 
     > Value = 0
 
@@ -167,7 +169,7 @@ Note: indented paragraphs indicate current model parameter values
     >
     > Habitat typs: SCA, QHG, CLA, BFF, MA, SG, MB, reef, flat, soft, canyon
 
-**Does a value of zero indicate fishing is excluded excluded?** **Current model has text indicating which habitats each group prefers. Value of 1 = group lives on habitat. Need to sort this out**
+**Does a value of zero indicate fishing is excluded?** **Current model has text indicating which habitats each group prefers. Value of 1 = group lives on habitat. Need to sort this out**
 
 -   `XXX_mindepth`,`XXX_maxdepth` (at_biology.prm) Min and max depth fishery operates.
 
@@ -199,7 +201,7 @@ May need to change some of these when we move to providing effort as driver of c
 
     > All values = 1 (no over reporting)
 
--   `fleet_flagmanage` (at_harvest.prm) Adaptive management. Can force catch then switch to dynamic fishing and apply management action durng this period
+-   `fleet_flagmanage` (at_harvest.prm) Adaptive management. Can force catch then switch to dynamic fishing and apply management action during this period
 
     > Values all 0
 
@@ -229,7 +231,7 @@ User defined non dynamic fishing mortality. Define fishing mortalities that get 
 
     > All values (vector) = 0 for start age
     >
-    > \_endage not present
+    > Alls set to 10 for end age. Changed to 12 although we dont use this type mortality
 
 -   `flag_sel_with_mFC` (at_harvest.prm) Global. Size based selectivity flag. Boolean
 
@@ -289,7 +291,30 @@ Effort matrix - Days each fishery will operate in each box. Catch determined by 
 
 -   `Ka_escape_XXX`,`Kb_escape_XXX`
 
+    > All values = 0
 
 ## Absent from at_harvest
 
 `YYY_mEff_thresh level` - Level of CPUE below which effort displacement occurs
+
+## Management options
+
+-   `XXX_flagmange` In this option the actual catch taken will be decreased if stocks fall below a set threshold
+
+    > All values 0
+
+-   \`XXX_flagmpa Spatial management through MPAs
+
+    > All Values 0
+
+-   \`XXX_flagseasonal Seasonal closures
+
+    > All Values 0
+
+-   \`pseudo_assess\` Pseudo assessments
+
+    > Set to 0
+
+-   `useRBCTiers` Recommended biological catch based assessment
+
+    > Set to 0

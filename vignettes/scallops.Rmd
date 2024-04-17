@@ -14,8 +14,10 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, warning=FALSE}
 library(atlantiscas)
+library(ncdf4)
+library(sf)
 ```
 
 ## Atlantis parameterization
@@ -53,7 +55,7 @@ sca |> dplyr::distinct(GEARCAT,GEARCODE) |>
 
 ## Landings
 
-The landings of Scallops and associated bycatch
+The landings of Scallop trips with associated bycatch
 
 ```{r plotland1, echo = F}
 landings <- sca |> 
@@ -76,7 +78,7 @@ landings |>
 
 ```
 
-Total scallop landings compared with atlantis forcing time series
+## Total scallop landings compared to bycatch
 
 ```{r plotcompare, echo = F}
 landings <- sca |> 
@@ -86,9 +88,6 @@ landings <- sca |>
                    .groups = "drop")
 
 ```
-
-
-Table of landings
 
 ```{r plot land2, echo =F}
 
@@ -101,7 +100,7 @@ sca |>
 ```
 
 
-Landings by state
+## Landings of Scallops by state
 
 ```{r plotland3, echo = F}
 landings <- sca |> 
@@ -117,7 +116,7 @@ landings |>
 
 ```
 
-Landings by port
+## Landings of Scallops by port
 
 ```{r plotland4, echo=F}
 landings <- sca |> 
@@ -143,22 +142,133 @@ landings |>
 
 ```
 
-Landings by Atlantis Box
 
-```{r plotland4, echo=F}
+## Landings by Atlantis Box
+compared to model output from v2.2.0
+
+```{r plotland5, echo=F}
 landings <- sca |> 
   dplyr::filter(Code == "SCA") |>  
   dplyr::group_by(Year,Area) |> 
   dplyr::summarise(lbs = sum(InsideLANDED),
                    .groups = "drop") |>
   tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
-  dplyr::mutate(Box = as.numeric(Box))
+  dplyr::mutate(Box = as.numeric(Box)) |> 
+  dplyr::mutate(mt = lbs*0.000453592) |> 
+  dplyr::select(-text,-lbs) |> 
+  dplyr::mutate(source = "CAMS")
 
+# Atlantis v2.2.0 scallop catch by box
 
-landings |> 
+x.nc = nc_open(here::here("data-raw/atlantis",'neus_outputCATCH.nc'))
+varname = names(x.nc$var)
+vn <- grep('SCA_Catch_FC1',varname,value = T)
+
+dd <- ncvar_get(x.nc,"SCA_Catch_FC1",collapse_degen = F)
+nc_close(x.nc)
+
+rownames(dd) <- 1:nrow(dd)
+colnames(dd) <- 1:ncol(dd)
+
+d2 <- as.data.frame(dd) |>
+  tibble::rownames_to_column(var="Box") |>
+  dplyr::mutate(Box = as.integer(Box) -1) |>
+  tidyr::pivot_longer(cols=-Box,names_to = "t",values_to = "value") |>
+  dplyr::mutate(t = as.integer(t),
+                Year = 1963+ceiling(t/5)) |> 
+  dplyr::group_by(Box,Year) |> 
+  dplyr::summarise(mt = mean(value),
+                   .groups="drop") |> 
+  dplyr::relocate(Year,Box,mt) |> 
+  dplyr::mutate(source = "atlantis")
+
+dataF <- rbind(d2,landings) |> 
+  dplyr::filter(Year > 1995)
+# 
+# landings |> 
+#   ggplot2::ggplot() + 
+#   ggplot2::geom_line(ggplot2::aes(x=Year,y=mt)) +
+#   ggplot2::facet_wrap(~Box) +
+#   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
+
+dataF |> 
   ggplot2::ggplot() + 
-  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=mt,color=source)) +
   ggplot2::facet_wrap(~Box) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
 
 ```
+
+## Landings (data) by box spatially
+
+```{r plotland6}
+dataBox <- dataF |> 
+  dplyr::filter(source == "CAMS") |> 
+  dplyr::group_by(Box) |> 
+  dplyr::summarise(mt = sum(mt))
+
+# select boxes which account fo 95% of landings
+landings <- dataBox |> 
+  dplyr::arrange(desc(mt)) |> 
+  dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |> 
+  dplyr::filter(prop <= 0.95)
+
+NEFSCspatial::Neus_atlantis |> 
+  dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
+  ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
+                        position = ggplot2::position_dodge(width=0.9),  size=3) 
+
+```
+
+Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
+
+
+## Landings (data) by box spatially for 3 main ports
+
+```{r plotland6}
+dataBox <- dataF |> 
+  dplyr::filter(source == "CAMS") |> 
+  dplyr::group_by(Box) |> 
+  dplyr::summarise(mt = sum(mt))
+
+# select boxes which account fo 95% of landings
+landings <- dataBox |> 
+  dplyr::arrange(desc(mt)) |> 
+  dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |> 
+  dplyr::filter(prop <= 0.95)
+
+NEFSCspatial::Neus_atlantis |> 
+  dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
+  ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
+                        position = ggplot2::position_dodge(width=0.9),  size=3) 
+
+```
+
+
+
+## Effort
+
+```{r}
+effort <- sca |> 
+  dplyr::group_by(Year,PORTLANDED) |>
+  dplyr::summarise(effort = sum(InsideDAS),lbs = sum(InsideLANDED)) |> 
+  dplyr::filter(PORTLANDED %in% ports)
+# |> 
+#   tidyr::pivot_longer(-c(Year,PORTLANDED),names_to = "type",values_to = "value")
+
+ggplot2::ggplot(effort) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=effort)) +
+  ggplot2::facet_wrap(~as.factor(PORTLANDED)) + 
+  ggplot2::ylab("Effort (Days)") +
+  ggplot2::ggtitle("Effort by port for top 10 productive ports")
+
+```
+
+
+
+
+

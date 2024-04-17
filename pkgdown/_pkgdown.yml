@@ -27,6 +27,8 @@ navbar:
         href: articles/dataQAQC.html
       - text: Data Exploration
         href: articles/ExploreFishingData.html
+      - text: Scallop Example
+        href: articles/scallops.html
     slides:
       text: Presentations
       menu:

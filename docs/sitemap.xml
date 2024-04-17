@@ -16,6 +16,9 @@
     <loc>/articles/index.html</loc>
   </url>
   <url>
+    <loc>/articles/scallops.html</loc>
+  </url>
+  <url>
     <loc>/articles/som.html</loc>
   </url>
   <url>
@@ -29,6 +32,12 @@
   </url>
   <url>
     <loc>/LICENSE-text.html</loc>
+  </url>
+  <url>
+    <loc>/reference/assign_latlon_ports.html</loc>
+  </url>
+  <url>
+    <loc>/reference/assign_species_codes.html</loc>
   </url>
   <url>
     <loc>/reference/compare_data.html</loc>
@@ -46,12 +55,21 @@
     <loc>/reference/index.html</loc>
   </url>
   <url>
+    <loc>/reference/main_data_cleaning.html</loc>
+  </url>
+  <url>
     <loc>/reference/plot_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/plot_ports.html</loc>
   </url>
   <url>
     <loc>/reference/process_data.html</loc>
   </url>
   <url>
     <loc>/reference/read_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/update_atlantis_groups.html</loc>
   </url>
 </urlset>
