@@ -89,7 +89,7 @@ landings <- sca |>
 
 ```
 
-```{r plot land2, echo =F}
+```{r plotland2, echo =F}
 
 sca |> 
   dplyr::group_by(Functional_Group) |> 
@@ -227,26 +227,26 @@ Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 
 ## Landings (data) by box spatially for 3 main ports
 
-```{r plotland6}
-dataBox <- dataF |> 
-  dplyr::filter(source == "CAMS") |> 
-  dplyr::group_by(Box) |> 
-  dplyr::summarise(mt = sum(mt))
+<!-- ```{r plotland7} -->
+<!-- dataBox <- dataF |>  -->
+<!--   dplyr::filter(source == "CAMS") |>  -->
+<!--   dplyr::group_by(Box) |>  -->
+<!--   dplyr::summarise(mt = sum(mt)) -->
 
-# select boxes which account fo 95% of landings
-landings <- dataBox |> 
-  dplyr::arrange(desc(mt)) |> 
-  dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |> 
-  dplyr::filter(prop <= 0.95)
+<!-- # select boxes which account fo 95% of landings -->
+<!-- landings <- dataBox |>  -->
+<!--   dplyr::arrange(desc(mt)) |>  -->
+<!--   dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |>  -->
+<!--   dplyr::filter(prop <= 0.95) -->
 
-NEFSCspatial::Neus_atlantis |> 
-  dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |> 
-  ggplot2::ggplot() +
-  ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
-  ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
-                        position = ggplot2::position_dodge(width=0.9),  size=3) 
+<!-- NEFSCspatial::Neus_atlantis |>  -->
+<!--   dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |>  -->
+<!--   ggplot2::ggplot() + -->
+<!--   ggplot2::geom_sf(ggplot2::aes(fill = mt)) + -->
+<!--   ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID), -->
+<!--                         position = ggplot2::position_dodge(width=0.9),  size=3)  -->
 
-```
+<!-- ``` -->
 
 
 

@@ -478,35 +478,15 @@ were</p>
 <p><img src="scallops_files/figure-html/plotland4-1.png" width="700"></p>
 </div>
 <div class="section level2">
-<h2 id="effort">Effort<a class="anchor" aria-label="anchor" href="#effort"></a>
-</h2>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">effort</span> <span class="op">&lt;-</span> <span class="va">sca</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>,<span class="va">PORTLANDED</span><span class="op">)</span> <span class="op">|&gt;</span></span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">InsideDAS</span><span class="op">)</span>,lbs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">InsideLANDED</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
-<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">PORTLANDED</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ports</span><span class="op">)</span></span>
-<span><span class="co">#&gt; `summarise()` has grouped output by 'Year'. You can override using the</span></span>
-<span><span class="co">#&gt; `.groups` argument.</span></span>
-<span><span class="co"># |&gt; </span></span>
-<span><span class="co">#   tidyr::pivot_longer(-c(Year,PORTLANDED),names_to = "type",values_to = "value")</span></span>
-<span></span>
-<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Year</span>,y<span class="op">=</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">PORTLANDED</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Effort (Days)"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Effort by port for top 10 productive ports"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="scallops_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
-</div>
-<div class="section level2">
 <h2 id="landings-by-atlantis-box">Landings by Atlantis Box<a class="anchor" aria-label="anchor" href="#landings-by-atlantis-box"></a>
 </h2>
 <p>compared to model output from v2.2.0</p>
 <p><img src="scallops_files/figure-html/plotland5-1.png" width="700"></p>
 </div>
 <div class="section level2">
-<h2 id="landings-by-box-spatially">Landings by box spatially<a class="anchor" aria-label="anchor" href="#landings-by-box-spatially"></a>
+<h2 id="landings-data-by-box-spatially">Landings (data) by box spatially<a class="anchor" aria-label="anchor" href="#landings-data-by-box-spatially"></a>
 </h2>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dataBox</span> <span class="op">&lt;-</span> <span class="va">dataF</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">source</span> <span class="op">==</span> <span class="st">"CAMS"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Box</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
@@ -531,6 +511,47 @@ were</p>
 <p><img src="scallops_files/figure-html/plotland6-1.png" width="700"></p>
 <p>Boxes that contribute 95% of landings 2, 3, 5, 6, 7, 8, 9, 12, 13,
 14, 15</p>
+</div>
+<div class="section level2">
+<h2 id="landings-data-by-box-spatially-for-3-main-ports">Landings (data) by box spatially for 3 main ports<a class="anchor" aria-label="anchor" href="#landings-data-by-box-spatially-for-3-main-ports"></a>
+</h2>
+<!-- ```{r plotland7} -->
+<!-- dataBox <- dataF |>  -->
+<!--   dplyr::filter(source == "CAMS") |>  -->
+<!--   dplyr::group_by(Box) |>  -->
+<!--   dplyr::summarise(mt = sum(mt)) -->
+<!-- # select boxes which account fo 95% of landings -->
+<!-- landings <- dataBox |>  -->
+<!--   dplyr::arrange(desc(mt)) |>  -->
+<!--   dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |>  -->
+<!--   dplyr::filter(prop <= 0.95) -->
+<!-- NEFSCspatial::Neus_atlantis |>  -->
+<!--   dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |>  -->
+<!--   ggplot2::ggplot() + -->
+<!--   ggplot2::geom_sf(ggplot2::aes(fill = mt)) + -->
+<!--   ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID), -->
+<!--                         position = ggplot2::position_dodge(width=0.9),  size=3)  -->
+<!-- ``` -->
+</div>
+<div class="section level2">
+<h2 id="effort">Effort<a class="anchor" aria-label="anchor" href="#effort"></a>
+</h2>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">effort</span> <span class="op">&lt;-</span> <span class="va">sca</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">Year</span>,<span class="va">PORTLANDED</span><span class="op">)</span> <span class="op">|&gt;</span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">InsideDAS</span><span class="op">)</span>,lbs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">InsideLANDED</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">PORTLANDED</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">ports</span><span class="op">)</span></span>
+<span><span class="co">#&gt; `summarise()` has grouped output by 'Year'. You can override using the</span></span>
+<span><span class="co">#&gt; `.groups` argument.</span></span>
+<span><span class="co"># |&gt; </span></span>
+<span><span class="co">#   tidyr::pivot_longer(-c(Year,PORTLANDED),names_to = "type",values_to = "value")</span></span>
+<span></span>
+<span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="va">effort</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">Year</span>,y<span class="op">=</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="op">~</span><span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">PORTLANDED</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Effort (Days)"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"Effort by port for top 10 productive ports"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="scallops_files/figure-html/unnamed-chunk-2-1.png" width="700"></p>
 </div>
   </div>
 

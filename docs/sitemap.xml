@@ -19,9 +19,6 @@
     <loc>/articles/scallops.html</loc>
   </url>
   <url>
-    <loc>/articles/som.html</loc>
-  </url>
-  <url>
     <loc>/articles/SSBData.html</loc>
   </url>
   <url>
@@ -43,12 +40,6 @@
     <loc>/reference/compare_data.html</loc>
   </url>
   <url>
-    <loc>/reference/explore_ports.html</loc>
-  </url>
-  <url>
-    <loc>/reference/fix_missing_ports.html</loc>
-  </url>
-  <url>
     <loc>/reference/get_port_lat_lon.html</loc>
   </url>
   <url>
@@ -56,9 +47,6 @@
   </url>
   <url>
     <loc>/reference/main_data_cleaning.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_data.html</loc>
   </url>
   <url>
     <loc>/reference/plot_ports.html</loc>
