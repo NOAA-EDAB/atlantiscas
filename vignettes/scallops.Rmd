@@ -7,14 +7,14 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, include = FALSE}
+
+
+```{r setup, warning=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
 )
-```
 
-```{r setup, warning=FALSE}
 library(atlantiscas)
 library(ncdf4)
 library(sf)
@@ -93,10 +93,12 @@ landings <- sca |>
 
 sca |> 
   dplyr::group_by(Functional_Group) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(millionlbs = sum(InsideLANDED)/1000000,
                    .groups = "drop") |> 
-  dplyr::arrange(desc(lbs)) |> 
-  kableExtra::kable()
+  dplyr::arrange(desc(millionlbs)) |> 
+  DT::datatable(options = list(pageLength = 10,
+                               order = list(list(0, 'asc'))
+          ))
 ```
 
 
@@ -125,7 +127,7 @@ landings <- sca |>
   dplyr::summarise(lbs = sum(InsideLANDED),
                    .groups = "drop")
 
-ports <- landings |> 
+ports10 <- landings |> 
   dplyr::group_by(PORTLANDED,STATE) |> 
   dplyr::summarise(lbs = sum(lbs),
                    .groups = "drop") |> 
@@ -135,7 +137,7 @@ ports <- landings |>
 
 
 landings |> 
-  dplyr::filter(PORTLANDED %in% ports) |> 
+  dplyr::filter(PORTLANDED %in% ports10) |> 
   ggplot2::ggplot() + 
   ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
   ggplot2::facet_wrap(~PORTLANDED)
@@ -201,7 +203,7 @@ dataF |>
 
 ## Landings (data) by box spatially
 
-```{r plotland6}
+```{r plotland6, echo =F}
 dataBox <- dataF |> 
   dplyr::filter(source == "CAMS") |> 
   dplyr::group_by(Box) |> 
@@ -227,36 +229,76 @@ Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 
 ## Landings (data) by box spatially for 3 main ports
 
-<!-- ```{r plotland7} -->
-<!-- dataBox <- dataF |>  -->
-<!--   dplyr::filter(source == "CAMS") |>  -->
-<!--   dplyr::group_by(Box) |>  -->
-<!--   dplyr::summarise(mt = sum(mt)) -->
+```{r plotland7, echo =F}
 
-<!-- # select boxes which account fo 95% of landings -->
-<!-- landings <- dataBox |>  -->
-<!--   dplyr::arrange(desc(mt)) |>  -->
-<!--   dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |>  -->
-<!--   dplyr::filter(prop <= 0.95) -->
+# pick out 3 busiest ports based on landings
+ports <- sca |> 
+  dplyr::group_by(PORTLANDED,PORTID) |> 
+  dplyr::summarise(lb = sum(InsideLANDED),
+                   .groups = "drop") |> 
+  dplyr::arrange(desc(lb)) |> 
+  dplyr::slice(1:3) 
 
-<!-- NEFSCspatial::Neus_atlantis |>  -->
-<!--   dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |>  -->
-<!--   ggplot2::ggplot() + -->
-<!--   ggplot2::geom_sf(ggplot2::aes(fill = mt)) + -->
-<!--   ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID), -->
-<!--                         position = ggplot2::position_dodge(width=0.9),  size=3)  -->
+portids <- ports |> dplyr::pull(PORTID)
 
-<!-- ``` -->
+landings <- sca |> 
+  dplyr::filter(Code == "SCA",PORTID %in% portids) |>  
+  dplyr::group_by(Year,Area,PORTID) |> 
+  dplyr::summarise(lbs = sum(InsideLANDED),
+                   .groups = "drop") |>
+  tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
+  dplyr::mutate(Box = as.numeric(Box)) |> 
+  dplyr::mutate(mt = lbs*0.000453592) |> 
+  dplyr::select(-text,-lbs)
+
+# create map for each
+for (iport in portids) {
+  
+  portName <- ports |> 
+    dplyr::filter(PORTID == iport) |> 
+    dplyr::pull(PORTLANDED)
+  
+  
+  dataBox <- landings |> 
+    dplyr::filter(PORTID == iport) |> 
+    dplyr::group_by(Box) |> 
+    dplyr::summarise(mt = sum(mt),
+                     .groups="drop")
+  
+  # create landings by box (summed over time)
+  boxLandings <- dataBox |>
+  dplyr::arrange(desc(mt)) |>
+  dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |>
+  dplyr::filter(prop <= 0.95)
+
+  # select boxes which account fo 95% of landings
+  p <- NEFSCspatial::Neus_atlantis |>
+    dplyr::left_join(boxLandings,by = c("BOX_ID"="Box"))  |>
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
+    ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
+                          size=3) +
+    ggplot2::ggtitle(portName)
+  
+  suppressWarnings(print(p))
+}
+
+
+```
 
 
 
 ## Effort
 
-```{r}
+```{r effort1, echo =F}
+
+
 effort <- sca |> 
-  dplyr::group_by(Year,PORTLANDED) |>
-  dplyr::summarise(effort = sum(InsideDAS),lbs = sum(InsideLANDED)) |> 
-  dplyr::filter(PORTLANDED %in% ports)
+  dplyr::group_by(Year,PORTLANDED,PORTID) |>
+  dplyr::summarise(effort = sum(InsideDAS),
+                   lbs = sum(InsideLANDED),
+                   .groups = "drop") |> 
+  dplyr::filter(PORTLANDED %in% ports10)
 # |> 
 #   tidyr::pivot_longer(-c(Year,PORTLANDED),names_to = "type",values_to = "value")
 
