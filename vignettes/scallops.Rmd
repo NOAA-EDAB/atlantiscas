@@ -45,7 +45,7 @@ Gear Categories identified, in the data set, as scallop vessels were
 These GEARCAT(s) were filtered to provide the following output
 
 ```{r scallopData, echo = F}
-sca <- readRDS(here::here("data/scallopData.rds")) |> 
+sca <- readRDS(here::here("data/scallopDataInsideModel.rds")) |> 
   dplyr::mutate(Year = as.integer(Year))
 
 sca |> dplyr::distinct(GEARCAT,GEARCODE) |> 
@@ -233,7 +233,7 @@ Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 
 # pick out 3 busiest ports based on landings
 ports <- sca |> 
-  dplyr::group_by(PORTLANDED,PORTID) |> 
+  dplyr::group_by(PORTLANDED,PORTID,lat,lon) |> 
   dplyr::summarise(lb = sum(InsideLANDED),
                    .groups = "drop") |> 
   dplyr::arrange(desc(lb)) |> 
@@ -258,6 +258,8 @@ for (iport in portids) {
     dplyr::filter(PORTID == iport) |> 
     dplyr::pull(PORTLANDED)
   
+  # portlatlon <- ports |> 
+  #   dplyr::filter(PORTID == iport)
   
   dataBox <- landings |> 
     dplyr::filter(PORTID == iport) |> 
@@ -278,7 +280,15 @@ for (iport in portids) {
     ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
     ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
                           size=3) +
-    ggplot2::ggtitle(portName)
+    ggplot2::geom_point(data = ports,
+                        mapping=ggplot2::aes(x=lon,y=lat),
+                        color="red") +
+    ggplot2::geom_text(data = ports,
+                       ggplot2::aes(x=lon,y=lat,label = PORTLANDED),
+                       size = 2.5,
+                       hjust=1, vjust=0) + 
+    ggplot2::ggtitle(portName) +
+    ggplot2::coord_sf(xlim = c(-80,-62)) 
   
   suppressWarnings(print(p))
 }
