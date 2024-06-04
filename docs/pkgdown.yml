@@ -1,11 +1,13 @@
-pandoc: '2.18'
-pkgdown: 2.0.7
+pandoc: 3.1.11
+pkgdown: 2.0.9
 pkgdown_sha: ~
 articles:
   atlantiscas: atlantiscas.html
+  atlantisFishing: atlantisFishing.html
   dataQAQC: dataQAQC.html
   ExploreFishingData: ExploreFishingData.html
+  ports: ports.html
   scallops: scallops.html
   SSBData: SSBData.html
-last_built: 2024-04-24T19:33Z
+last_built: 2024-06-04T18:06Z
 

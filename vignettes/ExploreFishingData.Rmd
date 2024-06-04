@@ -171,6 +171,25 @@ The Main ports in terms of landings (1000's metric tons)
   
   
 ```
+## Landings by Ports and State
+
+Top 5 ports in each state based on landings (1000's metric tons)
+
+```{r landportstate, echo = F}
+
+  ## top 5 ports in each state
+  landingstop5 <- totportdata |>
+    dplyr::group_by(STATE) |> 
+    dplyr::slice_max(order_by = tot, n = 5)
+  
+
+  DT::datatable(landingstop5)
+
+
+```
+
+
+
 
 ## Ports by State
 
