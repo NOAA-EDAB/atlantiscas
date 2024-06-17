@@ -67,21 +67,22 @@ process_data <- function(){
   #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
   commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
 
-  commercialData <- assign_species_codes(commercialData)
+  commercialData <- atlantiscas::assign_species_codes(commercialData)
   ## clean up species
   # read in neus groups. pull from neus-atlantis repo
 
   #atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
 
   ## save intermediate data for test scallops
-  scallopData <- fullData |>
-    dplyr::filter(Code == "SCA")
+  scallopData <- commercialData |>
+    dplyr::filter(GEARCAT %in% c("DREDGE SCALLOP","TRAWL BOTTOM SCALLOP","Scallop Gear"))
+
   saveRDS(scallopData,here::here("data/scallopData.rds"))
 
 
 
   # current data not assigned to an atlantis group
-  dataToSplit <-  fullData |> dplyr::filter(is.na(Code))
+  dataToSplit <-  commercialData |> dplyr::filter(is.na(Code))
   # plot of this data
   dataToSplit |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
@@ -102,7 +103,7 @@ process_data <- function(){
     ggplot2::facet_wrap(~SPPNM)
 
   # look a squid
-  fullData |>
+  commericalData |>
     dplyr::filter(grepl("SQUID",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
     dplyr::summarise(lbs = sum(InsideLANDED),
