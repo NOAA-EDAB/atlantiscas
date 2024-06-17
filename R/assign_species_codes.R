@@ -1,6 +1,6 @@
-#'assign species codes to atlantis groups
+#' assign species codes to atlantis groups
 #'
-#'
+#' Reads species from dev branch of neus-atlantis
 #'
 #'
 #'
@@ -9,7 +9,9 @@
 
 assign_species_codes <- function(commercialData){
 
+
   atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/andy_speciesupdate/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
+  #atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
 
   # finds duplicates
   atlantisGroups |>
@@ -21,6 +23,14 @@ assign_species_codes <- function(commercialData){
     dplyr::group_by(Code,Functional_Group) |>
     dplyr::distinct() |>
     dplyr::filter(dplyr::n()==1) |>
+    print(n=30)
+
+  message("Species with the same NESPP3 code")
+  atlantisGroups |>
+    dplyr::group_by(NESPP3) |>
+    dplyr::distinct() |>
+    dplyr::filter(!is.na(NESPP3)) |>
+    dplyr::filter(dplyr::n()>1) |>
     print(n=30)
 
   # check for NAs of NESPP3 codes in data
