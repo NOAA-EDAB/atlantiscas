@@ -11,9 +11,51 @@ pull_port_tables <- function(channel,write = F) {
   portTableVTR <- DBI::dbGetQuery(channel,"select * from VTR.VLPORTSYN")
   # this is a mess!
   if(write) {
-    saveRDS(portTableVTR,here::here("data-raw/portTableVTR"))
+    saveRDS(portTableVTR,here::here("data-raw/portTableVTR.rds"))
   }
 
+
+  # pull port table from cams and clean names
+
+
+  portTableCAMS <- DBI::dbGetQuery(channel,"select * from CAMS_GARFO.CFG_PORT")
+  portTableCAMS$PORT_NAME <- gsub("\\(\\(","(",portTableCAMS$PORT_NAME)
+
+  portTableCAMS  <-   portTableCAMS |>
+    dplyr::as_tibble() |>
+    tidyr::separate(PORT_NAME,
+                    into=c("NewPORT","extracol"),
+                    sep = "\\(",
+                    fill="right") |>
+    dplyr::select(-extracol,-PSREGION,-DOC) |>
+    dplyr::as_tibble() |>
+    dplyr::rename(PORTID = PORT,
+                  PORT= NewPORT,
+                  STATE=STATE_ABB,
+                  COUNTY = COUNTY_NAME) |>
+    dplyr::mutate(PORT=trimws(PORT)) |>
+    dplyr::distinct()
+
+  # FIX SPELLING MISTAKES IN PORT TABLES
+  portTableCAMS$PORT[portTableCAMS$PORT == "ORRS ISLAND" & portTableCAMS$STATE=="ME"] <- "ORR'S ISLAND"
+  portTableCAMS$PORT[portTableCAMS$PORT == "LONG ISLAND CUMBERLAND" & portTableCAMS$STATE=="ME"] <- "LONG ISLAND"
+  portTableCAMS$PORT[portTableCAMS$PORT == "STUEBEN" & portTableCAMS$STATE=="ME"] <- "STEUBEN"
+  portTableCAMS$PORT[portTableCAMS$PORT == "SALISBURY COVE" & portTableCAMS$STATE=="ME"] <- "SALSBURY COVE"
+  portTableCAMS$PORT[portTableCAMS$PORT == "WESTERLEY" & portTableCAMS$STATE=="RI"] <- "WESTERLY"
+  portTableCAMS$PORT[portTableCAMS$PORT == "BARINGTON" & portTableCAMS$STATE=="RI"] <- "BARRINGTON"
+  portTableCAMS$COUNTY[portTableCAMS$PORT == "PERKINS COVE" & portTableCAMS$STATE=="ME"] <- "YORK"
+  portTableCAMS$PORT[portTableCAMS$PORT == "PERKINS COVE" & portTableCAMS$STATE=="ME"] <- "OGUNQUIT"
+  portTableCAMS$COUNTY[portTableCAMS$PORT == "OGUNQUIT" & portTableCAMS$STATE=="ME"] <- "YORK"
+  portTableCAMS$PORT[portTableCAMS$PORT == "DYERS BAY" & portTableCAMS$STATE=="ME"] <- "STEUBEN"
+  portTableCAMS$PORT[portTableCAMS$PORT == "MATHAIS POINT" & portTableCAMS$STATE=="VA"] <- "DAHLGREN"
+  portTableCAMS$PORT[portTableCAMS$PORT == "HAMPTON/SEABROOK" & portTableCAMS$STATE=="NH"] <- "SEABROOK"
+  portTableCAMS$PORT[portTableCAMS$PORT == "HARRIMANS POINT" & portTableCAMS$STATE=="ME"] <- "BROOKLIN"
+  portTableCAMS$COUNTY[portTableCAMS$PORT == "BROOKLIN" & portTableCAMS$STATE=="ME"] <- "HANCOCK"
+
+
+  if(write) {
+    saveRDS(portTableCAMS,here::here("data-raw/portTableCAMS.rds"))
+  }
 
 
   # # pull from CFDBS
@@ -61,5 +103,5 @@ pull_port_tables <- function(channel,write = F) {
     saveRDS(portTableCFDBS,here::here("data-raw/portTableCFDBS.rds"))
   }
 
-  return(list(portsCFDBS=portTableCFDBS,portsVTR=portTableVTR))
+  return(list(portsCFDBS=portTableCFDBS,portsVTR=portTableVTR,portsCAMS=portTableCAMS))
 }
