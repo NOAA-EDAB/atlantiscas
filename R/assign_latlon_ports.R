@@ -24,94 +24,85 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   #dat <- atlantiscas::read_data()
 
   # deal with ports in states that lie within model
-  neusData <- dat$data %>%
-    dplyr::filter(STATE %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA")) %>%
-    dplyr::mutate(PORTID = as.numeric(PORTID)) %>%
-    dplyr::mutate(PORT = dplyr::case_when(PORT == "HAMPTON BAY" ~ "HAMPTON BAYS",
-                                          PORT == "STUEBEN" ~ "STEUBEN",
-                                          PORT == "OTHER NORTHAMPTON" ~ "NORTHAMPTON",
-                                          TRUE ~ PORT))
+  neusData <- dat |>
+    dplyr::mutate(PORTID = as.numeric(PORTID)) |>
+    dplyr::select(-CFG_PORT,-PORT_NAME,-STATE_ABB)
 
-  neusDataNA <- neusData %>%
+
+  neusDataNA <- neusData |>
     dplyr::filter(is.na(PORTID))
 
-  neusOutside <- dat$data %>%
-    dplyr::filter(!(STATE %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA"))) %>%
+  # # remove all ports with NA id
+  # neusData <- neusData |>
+  #   dplyr::filter(!is.na(PORTID))
+
+
+  # read in CAMS port lookup table
+  portTableCAMS <- readRDS(here::here("data-raw/portTableCAMS.rds")) |>
+    dplyr::as_tibble() |>
+    dplyr::select(PORTID,PORT,STATE,COUNTY) |>
+    dplyr::rename(PORTNM = PORT,
+                  STATEABB = STATE) |>
     dplyr::mutate(PORTID = as.numeric(PORTID))
 
-  # read in port lookup table
-  portTableCFDBS <- readRDS(here::here("data-raw/portTableCFDBS.rds")) %>%
-    dplyr::as_tibble() %>%
-    dplyr::select(PORTID,PORT,STATE,COUNTY) %>%
-    dplyr::rename(PORTNM = PORT,
-                  STATEABB = STATE) %>%
+  # join data with cleaned port table
+  neusData <- neusData |>
+    dplyr::left_join(portTableCAMS,by = "PORTID")
+
+  # ports outside of model
+  neusOutside <- neusData |>
+    dplyr::filter(!(STATEABB %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA"))) |>
     dplyr::mutate(PORTID = as.numeric(PORTID))
+
+  # filter all ports within model domain
+  neusData <- neusData |>
+    dplyr::filter(STATEABB %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA",NA))
 
   #find all ports in data and filter from port table
   portids <- unique(neusData$PORTID)
-  neusPortTable <- portTableCFDBS %>%
+  neusPortTable <- portTableCAMS |>
     dplyr::filter(PORTID %in% portids)
 
 
-  # Replace all PORT, STATE names for known PORTIDs with names from PORT table
-  # Assumes reported PORTID is correct.
-  # There are some PORTIDs in data with multiple descriptions. Use the one in the port table
-  ns <- neusData
-  for (irecord in 1:nrow(neusPortTable)) {
-    id <- neusPortTable$PORTID[irecord]
-    port <- neusPortTable$PORTNM[irecord]
-    state <- neusPortTable$STATEABB[irecord]
-    ind <- neusData$PORTID == id
-    ns$PORT[ind] <- port
-    ns$STATE[ind] <- state
-  }
-  neusData <- ns
-
+  # Fix some names.
+  # There are port names in the landings data which do not match port names in the port tables.
+  # Further, the port tables in the landings table have spelling errors etc. We correct these now.
+  # we ignore the names in the landings data since they should be tied to the port id number
 
   # join landings with ports by port id to find ports in data set
-  pts <- neusData %>%
-    dplyr::left_join(.,portTableCFDBS, by =c("PORTID")) %>%
-    { . ->> dd} %>%
-    dplyr::distinct(PORTID,PORT,PORTNM,COUNTY,STATE,STATEABB)%>%
+  pts <- neusData |>
+    dplyr::distinct(PORTID,PORT,PORTNM,COUNTY,STATE,STATEABB) |>
     dplyr::mutate(ORIGPORT = PORT,
-                  ORIGSTATE = STATE) %>%
-    dplyr::relocate(PORTID,ORIGPORT,ORIGSTATE,PORTNM,COUNTY,STATEABB) %>%
+                  ORIGSTATE = STATE) |>
+    dplyr::relocate(PORTID,ORIGPORT,ORIGSTATE,PORTNM,COUNTY,STATEABB) |>
     dplyr::select(-PORT,-STATE)
 
   # create new port and county fields with "Clean" names
-  pts2 <- pts %>%
+  pts2 <- pts |>
     dplyr::mutate(newport = dplyr::case_when(grepl("OTHER",PORTNM) ~ gsub("OTHER ","",PORTNM),
-                                               TRUE ~ PORTNM)) %>%
-    dplyr::mutate(newport = gsub("\\(COUNTY\\)","",newport)) %>%
-    dplyr::mutate(newport = gsub("\\(TOWN OF\\)","",newport)) %>%
-    dplyr::mutate(newport = gsub("\\/LYNNHAVEN","",newport)) %>%
-    dplyr::mutate(newport = gsub("\\(CAPTREE\\)","",newport)) %>%
-    dplyr::mutate(newport = gsub("\\(PORT\\)","",newport)) %>%
+                                               TRUE ~ PORTNM)) |>
+    dplyr::mutate(newport = gsub("\\(COUNTY\\)","",newport)) |>
+    dplyr::mutate(newport = gsub("\\(TOWN OF\\)","",newport)) |>
+    dplyr::mutate(newport = gsub("\\/LYNNHAVEN","",newport)) |>
+    dplyr::mutate(newport = gsub("\\(CAPTREE\\)","",newport)) |>
+    dplyr::mutate(newport = gsub("\\(PORT\\)","",newport)) |>
     dplyr::mutate(newport = gsub("\\(AQUINNAH\\)","",newport))
-
-  ## Fix other names
-  pts2$newport[pts2$PORTNM == "DUKES" & pts2$STATEABB=="MA"] <- NA
-  pts2$newport[pts2$PORTNM == "CREEK" & pts2$STATEABB=="MD"] <- NA
-  pts2$newport[pts2$PORTNM == "NORTHUMBERLAND" & pts2$STATEABB=="VA"] <- NA
-  pts2$newport[pts2$PORTNM == "WASHINGTON" & pts2$STATEABB=="NY"] <- NA
-  pts2$newport[pts2$PORTNM == "WASHINGTON" & pts2$STATEABB=="RI"] <- NA
-  pts2$newport[pts2$PORTNM == "WASHINGTON" & pts2$STATEABB=="ME"] <- NA
-  pts2$newport[pts2$PORTNM == "CITY OF CHESAPEAKE" & pts2$STATEABB=="VA"] <- NA
-  pts2$newport[pts2$PORTNM == "WILLIAMS CREEK" & pts2$STATEABB=="VA"] <- NA
 
 
   # county
-  pts2 <- pts2 %>%
+  pts2 <- pts2 |>
     dplyr::mutate(newcounty = dplyr::case_when(grepl("CITY OF",COUNTY) ~ gsub("CITY OF ","",COUNTY),
-                                             TRUE ~ COUNTY)) %>%
-    dplyr::mutate(newcounty = gsub("\\(COUNTY\\)","",newcounty)) %>%
+                                             TRUE ~ COUNTY)) |>
+    dplyr::mutate(newcounty = gsub("\\(COUNTY\\)","",newcounty)) |>
     dplyr::mutate(newcounty = gsub("NOT-SPECIFIED","",newcounty))
 
-  # remove trips with no specied portid, port, county or state. All missing
-  pts2 <- pts2 %>%
-    dplyr::mutate(newport = dplyr::case_when(newcounty == "" ~ "",
-                                             TRUE ~ newport))
+  # Manual Fixes for "OTHER KINGS"
+  pts2$newport[pts2$newcounty == "KINGS" & pts2$STATEABB=="NY"] <- "BROOKLYN"
+  # manual fix for portid with 2 differnt ports that are not in port lookup table
+  index <- pts2$PORTID == 224107 & !is.na(pts2$PORTID)
+  pts2[index,]$ORIGPORT <- "BOOTHBAY HARBOR"
 
+  message("Running PORT, COUNTY, STATE through open street maps to get lat and lons")
   # run names of port, county, state through open street maps to get lat and lon
   osmpts <- tidygeocoder::geocode(pts2,
                                city=newport,
@@ -122,15 +113,16 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
                                return_input = T,
                                method = "osm")
 
-  keep <- osmpts %>%
+  keep <- osmpts |>
     dplyr::filter(!is.na(lat))
 
   osmm <- keep
   # select records with no no city
-  tryagain <- osmpts %>%
-    dplyr::filter(is.na(lat)) %>%
+  tryagain <- osmpts |>
+    dplyr::filter(is.na(lat)) |>
     dplyr::select(-lat,-lon)
 
+  message("Running COUNTY, STATE (from port table) through open street maps to get lat and lons")
   osmpt2 <- tidygeocoder::geocode(tryagain,
                           county=newcounty,
                           state = STATEABB,
@@ -139,109 +131,141 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
                           return_input = T,
                           method = "osm")
 
-  keep <- osmpt2 %>%
+  keep <- osmpt2 |>
     dplyr::filter(!is.na(lat))
 
   osmm <- rbind(osmm,keep)
 
   ## trip id's without port info in tables
-  ## use port info in data
-  missingports <- osmpt2 %>%
-    dplyr::filter(is.na(lat)) %>%
-    dplyr::distinct(PORTID) %>%
-    dplyr::pull()
-
-  step3 <- neusData %>%
-    dplyr::filter(PORTID %in% missingports) %>%
-    dplyr::distinct(PORTID,PORT,STATE) %>%
-    dplyr::mutate(COUNTY = NA,
-                  newcounty = PORT,
-                  newport = NA,
-                  ORIGPORT = PORT,
-                  ORIGSTATE = STATE,
-                  PORTNM = NA,
-                  STATEABB = NA,) %>%
-    dplyr::relocate(PORTID,ORIGPORT,ORIGSTATE,PORTNM,COUNTY,STATEABB,newport,newcounty) %>%
-    dplyr::select(-PORT,-STATE)
+  ## use port info in origianl data, not assigned to a portid
+  missingports <- osmpt2 |>
+    dplyr::filter(is.na(lat) & !is.na(PORTID)) |>
+    dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("OTHER",ORIGPORT) ~ gsub("OTHER ","",ORIGPORT),
+                                             TRUE ~ ORIGPORT)) |>
+    dplyr::mutate(newcounty = dplyr::case_when(grepl("CUNDY",ORIGPORT) ~ "CUMBERLAND",
+                                              TRUE ~ COUNTY)  ) |>
+    dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("HAMPTON BAY",ORIGPORT) ~ "HAMPTON BAYS",
+                                               TRUE ~ ORIGPORT)  ) |>
+    dplyr::select(-c(lat,lon))
 
 
-  osmpt3 <- tidygeocoder::geocode(step3,
-                                  county=newcounty,
+
+
+  message("Running COUNTY, STATE (from data) through open street maps to get lat and lons.")
+  osmpt3 <- tidygeocoder::geocode(missingports,
+                                  city = ORIGPORT,
+                                  #county=newcounty,
                                   state = ORIGSTATE,
                                   lat=lat,
                                   long= lon,
                                   return_input = T,
                                   method = "osm")
 
-  keep <- osmpt3 %>%
+  keep <- osmpt3 |>
     dplyr::filter(!is.na(lat))
 
   osmm <- rbind(osmm,keep)
 
-  ## hand fix ports ...again
-  missingports <- osmpt3 %>%
+  ports <- osmm |>
+    dplyr::select(PORTID,newport,newcounty,lat,lon) |>
+    dplyr::distinct()
+
+  ### ALL data with a port ID now rectified. Join with data
+
+  neusData |>
+    dplyr::filter(!is.na(PORTID)) |>
+    dim()
+
+  notNA <- neusData |>
+    dplyr::filter(!is.na(PORTID)) |>
+    dplyr::left_join(ports,by="PORTID")
+
+  saveRDS(notNA,here::here("notNA.rds"))
+
+  # Deal with records that dont have a port id. give them a portid and join to neusData
+
+  neusDataNA <- neusData |>
+    dplyr::filter(is.na(PORTID))
+
+  missingports <- osmpt3 |>
     dplyr::filter(is.na(lat))
 
-  # these ports exist in the data already
-  # replace PORT name and STATE with corrct nam
+  missing  <-  osmpt2 |>
+    dplyr::filter(is.na(lat) & is.na(PORTID)) |>
+    dplyr::filter(is.na(lat))
 
-  # missingports$newcounty[missingports$ORIGPORT =="STUEBEN" & missingports$ORIGSTATE =="ME"] <- "STEUBEN"
-  #
-  # missingports$PORTID[missingports$ORIGPORT =="LONG BEACH" & missingports$ORIGSTATE =="NJ"] <- 331627
-  # missingports$lat[missingports$ORIGPORT =="LONG BEACH" & missingports$ORIGSTATE =="NJ"] <- 39.97782
-  # missingports$lon[missingports$ORIGPORT =="LONG BEACH" & missingports$ORIGSTATE =="NJ"] <- -74.33193
-  # missingports$newport[missingports$ORIGPORT =="LONG BEACH" & missingports$ORIGSTATE =="NJ"] <- "LONG BEACH"
-  # missingports$newcounty[missingports$ORIGPORT =="LONG BEACH" & missingports$ORIGSTATE =="NJ"] <- "OCEAN"
-  #
-  # missingports$PORTID[missingports$ORIGPORT =="HAMPTON BAY" & missingports$ORIGSTATE =="NY"] <- 350735
-  # missingports$lat[missingports$ORIGPORT =="HAMPTON BAY" & missingports$ORIGSTATE =="NY"] <- 40.86899
-  # missingports$lon[missingports$ORIGPORT =="HAMPTON BAY" & missingports$ORIGSTATE =="NY"] <- -72.5175893
-  # missingports$newcounty[missingports$ORIGPORT =="HAMPTON BAY" & missingports$ORIGSTATE =="NY"] <- "SUFFOLK"
-  # missingports$newport[missingports$ORIGPORT =="HAMPTON BAY" & missingports$ORIGSTATE =="NY"] <- "HAMPTON BAYS"
-  #
-  # missingports$PORTID[missingports$ORIGPORT =="OTHER NORTHAMPTON" & missingports$ORIGSTATE =="VA"] <- 490945
-  # missingports$lat[missingports$ORIGPORT =="OTHER NORTHAMPTON" & missingports$ORIGSTATE =="VA"] <- 37.04934
-  # missingports$lon[missingports$ORIGPORT =="OTHER NORTHAMPTON" & missingports$ORIGSTATE =="VA"] <- -76.4244302197637
-  # missingports$newcounty[missingports$ORIGPORT =="OTHER NORTHAMPTON" & missingports$ORIGSTATE =="VA"] <- "NORTHAMPTON"
-  # missingports$newport[missingports$ORIGPORT =="OTHER NORTHAMPTON" & missingports$ORIGSTATE =="VA"] <- "NORTHAMPTON"
-  #
-  # missingports$lat[missingports$ORIGPORT =="OTHER NEW LONDON" & missingports$ORIGSTATE =="CT"] <- 41.4915
-  # missingports$lon[missingports$ORIGPORT =="OTHER NEW LONDON" & missingports$ORIGSTATE =="CT"] <- -72.1237666
-  # missingports$newcounty[missingports$ORIGPORT =="OTHER NEW LONDON" & missingports$ORIGSTATE =="CT"] <- "NEW LONDON"
-  #
-  # missingports$lat[missingports$ORIGPORT =="OTHER DELAWARE" & missingports$ORIGSTATE =="DE"] <- 38.69205
-  # missingports$lon[missingports$ORIGPORT =="OTHER DELAWARE" & missingports$ORIGSTATE =="DE"] <- -75.4013315
-  # missingports$newcounty[missingports$ORIGPORT =="OTHER DELAWARE" & missingports$ORIGSTATE =="DE"] <- NA
-  #
-  # missingports$lat[missingports$ORIGPORT =="OTHER SUSSEX" & missingports$ORIGSTATE =="DE"] <- 38.69081
-  # missingports$lon[missingports$ORIGPORT =="OTHER SUSSEX" & missingports$ORIGSTATE =="DE"] <- -75.36914
-  # missingports$newcounty[missingports$ORIGPORT =="OTHER SUSSEX" & missingports$ORIGSTATE =="DE"] <- "SUSSEX"
-  #
-  # missingports$lat[is.na(missingports$ORIGPORT) & missingports$ORIGSTATE =="NH"] <- 43.48491
-  # missingports$lon[is.na(missingports$ORIGPORT) & missingports$ORIGSTATE =="NH"] <- -71.6554
+  missingports <- rbind(missingports,missing)
 
-  ## Check again for PORTID dups
+  missingports <- missingports |>
+    dplyr::filter(is.na(lat))  |>
+    dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("OTHER",ORIGPORT) ~ gsub("OTHER ","",ORIGPORT),
+                                              TRUE ~ ORIGPORT)) |>
+    dplyr::mutate(newcounty = dplyr::case_when(grepl("CUNDY",ORIGPORT) ~ "CUMBERLAND",
+                                               TRUE ~ COUNTY)  ) |>
+    dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("HAMPTON BAY",ORIGPORT) ~ "HAMPTON BAYS",
+                                              TRUE ~ ORIGPORT)  )
+
+
+  # match existing data
+  fixed <- NULL
+  for (irecord in 1:nrow(missingports)) {
+    print(irecord)
+    record <- missingports[irecord,]
+    port <- record$ORIGPORT
+    county <- record$newcounty
+    state <- record$ORIGSTATE
+    # record$newport <- record$ORIGPORT
+    # record$STATEABB <- record$ORIGSTATE
+    if (is.na(port) & is.na(county) & is.na(state)) {
+      next
+    }
+    # pick out lat and lon for this port
+    match <- osmm |>
+      dplyr::filter(newport == port,
+                    #newcounty == county,
+                    STATEABB == state) |>
+      dplyr::distinct(PORTID,lat,lon,newport,newcounty,STATEABB) |>
+      dplyr::slice(1)
+    if (nrow(match) ==0) {
+      match <- osmm |>
+        dplyr::filter(ORIGPORT == port,
+                      #newcounty == county,
+                      STATEABB == state) |>
+        dplyr::distinct(PORTID,lat,lon,newport,newcounty,STATEABB) |>
+        dplyr::slice(1)
+    }
+    record$lat <- match$lat
+    record$lon <- match$lon
+    record$PORTID <- match$PORTID
+    record$newport <- match$newport
+    record$newcounty <- match$newcounty
+    record$STATEABB <- match$STATEABB
+    fixed <- rbind(fixed,record)
+  }
+
+  fixed <- fixed |>
+    dplyr::distinct() |>
+    dplyr::select(ORIGPORT,ORIGSTATE,newport,newcounty,lat,lon)
+
+  # join these to data
+  neusDataNA |>
+    dplyr::left_join(fixed, by = c("PORT"="ORIGPORT","STATE"="ORIGSTATE"))
+
+osmm <- rbind(osmm,fixed)
+
 
   ##############################
 
-  # just select valid PORTS
-  osm <- osmm %>%
-    dplyr::filter(!is.na(PORTID))
 
-  osmwrite <- osm #rbind(osm,missingports)
-  osmwrite <- osm %>%
-    dplyr::select(-ORIGPORT,-ORIGSTATE) %>%
+  osmwrite <- osmm |>
+    dplyr::select(-ORIGPORT,-ORIGSTATE)  |>
     dplyr::distinct()
 
-
-  saveRDS(osmwrite,here::here("data-raw/portLatLon.rds"))
+  if(saveToFile) {
+    saveRDS(osmwrite,here::here("data-raw/portLatLon.rds"))
+  }
 
   #osmm <- readRDS(here::here("data-raw/portLatLon.rds"))
-
-  # missing ports removed. deal with later
-  neusData2 <- neusData %>%
-    dplyr::filter(!is.na(PORTID))
-
 
   ## DONE for data with ports that have port ids.
   # Now deal witj data with missing ports. Assign them portids, then overwrite PORT and state with correect infor from
@@ -250,7 +274,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
 
   ## After all of this there are many trips with no port id
   # Try to fix this
-  newmiss <- osmm %>%
+  newmiss <- osmm  |>
     dplyr::filter(is.na(PORTID))
   ## for records that say (COUNTY) remove and make portname. this is equivaluent to OTHER
   newmisss <- newmiss %>%
