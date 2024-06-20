@@ -28,10 +28,6 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
     dplyr::mutate(PORTID = as.numeric(PORTID)) |>
     dplyr::select(-CFG_PORT,-PORT_NAME,-STATE_ABB)
 
-
-  neusDataNA <- neusData |>
-    dplyr::filter(is.na(PORTID))
-
   # # remove all ports with NA id
   # neusData <- neusData |>
   #   dplyr::filter(!is.na(PORTID))
@@ -51,7 +47,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
 
   # ports outside of model
   neusOutside <- neusData |>
-    dplyr::filter(!(STATEABB %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA"))) |>
+    dplyr::filter(!(STATEABB %in% c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA",NA))) |>
     dplyr::mutate(PORTID = as.numeric(PORTID))
 
   # filter all ports within model domain
@@ -172,17 +168,15 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
 
   ### ALL data with a port ID now rectified. Join with data
 
-  neusData |>
-    dplyr::filter(!is.na(PORTID)) |>
-    dim()
-
   notNA <- neusData |>
     dplyr::filter(!is.na(PORTID)) |>
-    dplyr::left_join(ports,by="PORTID")
+    dplyr::left_join(ports,by="PORTID") |>
+    dplyr::relocate(PORTID)
 
-  saveRDS(notNA,here::here("notNA.rds"))
+  #saveRDS(notNA,here::here("notNA.rds"))
 
-  # Deal with records that dont have a port id. give them a portid and join to neusData
+  ###################################################### NA Portss ##################################
+  ## Deal with records that dont have a port id. give them a portid and join to neusData
 
   neusDataNA <- neusData |>
     dplyr::filter(is.na(PORTID))
@@ -203,7 +197,8 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
     dplyr::mutate(newcounty = dplyr::case_when(grepl("CUNDY",ORIGPORT) ~ "CUMBERLAND",
                                                TRUE ~ COUNTY)  ) |>
     dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("HAMPTON BAY",ORIGPORT) ~ "HAMPTON BAYS",
-                                              TRUE ~ ORIGPORT)  )
+                                              TRUE ~ ORIGPORT)  ) |>
+    dplyr::distinct()
 
 
   # match existing data
@@ -226,7 +221,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
                     STATEABB == state) |>
       dplyr::distinct(PORTID,lat,lon,newport,newcounty,STATEABB) |>
       dplyr::slice(1)
-    if (nrow(match) ==0) {
+    if (nrow(match) == 0) {
       match <- osmm |>
         dplyr::filter(ORIGPORT == port,
                       #newcounty == county,
@@ -244,18 +239,25 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   }
 
   fixed <- fixed |>
-    dplyr::distinct() |>
-    dplyr::select(ORIGPORT,ORIGSTATE,newport,newcounty,lat,lon)
+    dplyr::distinct()
+
+  osmm <- rbind(osmm,fixed) |>
+    dplyr::distinct()
+
+
+  newfixed <- fixed |>
+    dplyr::select(PORTID,ORIGPORT,ORIGSTATE,newport,newcounty,lat,lon)
 
   # join these to data
-  neusDataNA |>
-    dplyr::left_join(fixed, by = c("PORT"="ORIGPORT","STATE"="ORIGSTATE"))
+  dataNA <- neusDataNA |>
+    dplyr::select(-PORTID) |>
+    dplyr::left_join(newfixed, by = c("PORT"="ORIGPORT","STATE"="ORIGSTATE")) |>
+    dplyr::relocate(PORTID)
 
-osmm <- rbind(osmm,fixed)
-
+  allData <- rbind(notNA,dataNA)
 
   ##############################
-
+# SAvea processed output
 
   osmwrite <- osmm |>
     dplyr::select(-ORIGPORT,-ORIGSTATE)  |>
@@ -267,99 +269,13 @@ osmm <- rbind(osmm,fixed)
 
   #osmm <- readRDS(here::here("data-raw/portLatLon.rds"))
 
-  ## DONE for data with ports that have port ids.
-  # Now deal witj data with missing ports. Assign them portids, then overwrite PORT and state with correect infor from
-  # port table
-
-
-  ## After all of this there are many trips with no port id
-  # Try to fix this
-  newmiss <- osmm  |>
-    dplyr::filter(is.na(PORTID))
-  ## for records that say (COUNTY) remove and make portname. this is equivaluent to OTHER
-  newmisss <- newmiss %>%
-    dplyr::mutate(newcounty = dplyr::case_when(grepl("\\(COUNTY\\)",newcounty) ~ gsub("\\(COUNTY\\)","",newcounty),
-                                               TRUE ~ newcounty)) %>%
-    dplyr::mutate(newcounty = trimws(newcounty))
-
-  ## match reported port with other ports with same name or counties with the reported port name
-  fillin <- newmisss
-  for(ir in 1:nrow(newmisss)) {
-    record <- newmisss[ir,]
-
-    p <- record$newcounty
-    s <- record$ORIGSTATE
-    record <- osmm %>%
-      dplyr::filter(newport == p & STATEABB == s)
-    if (nrow(record) == 0) {
-      record <- osmm %>%
-        dplyr::filter(newcounty == p & ORIGSTATE == s)
-    }
-
-    if (nrow(record) == 0) {
-      print("ahhh")
-    } else {
-      # take first entry
-      fillin$PORTID[ir] <- record$PORTID[1]
-      fillin$lat[ir] <- record$lat[1]
-      fillin$lon[ir] <- record$lon[1]
-      fillin$newport[ir] <- record$newport[1]
-      fillin$newcounty[ir] <- record$newcounty[1]
-    }
-
-  }
-
-
-  ## remove ports with NA Ids. Deal with this separately
-
-  ### Now deal with NA data
-  # match orig ports and assign trip id
-  naports <- neusDataNA %>%
-    dplyr::distinct(PORT,STATE)
-
-  useports <- fillin
-  #  now grab port id in neusData to assign to missing ports
-  neusDataNA2 <- neusDataNA
-  for (iport in 1:nrow(useports)) {
-    record <- useports %>%
-      dplyr::slice(iport)
-    ind <- ((neusDataNA2$PORT == record$ORIGPORT) & (neusDataNA2$STATE == record$ORIGSTATE))
-    neusDataNA2$PORTID[ind] <- record$PORTID
-  }
-  # these ports that are duplicates of ports in neusdata
-  # remove ports that have missing port or state. toss data
-  missingports <- missingports %>%
-    dplyr::filter( !is.na(ORIGSTATE) & !is.na(ORIGPORT))
-
-  neusDataNA2 %>%
-    dplyr::filter(is.na(PORTID)) %>% dplyr::distinct(PORT,STATE)
-
-
-  for (iport in 1:nrow(missingports)) {
-    record <- missingports %>%
-      dplyr::slice(iport)
-    ind <- ((neusData2$PORT == record$ORIGPORT) & (neusData2$STATE == record$ORIGSTATE))
-    indna <- ((neusDataNA2$PORT == record$ORIGPORT) & (neusDataNA2$STATE == record$ORIGSTATE))
-    portid <- unique(neusData2$PORTID[ind])
-    neusDataNA2$PORTID[indna] <- portid
-  }
-
-  ## toss data with missing ports. very few records from small ports
-  neusDataNA2 <- neusDataNA2 %>%
-    dplyr::filter(!is.na(PORTID))
-
-  neusDataFinal <- rbind(neusData2,neusDataNA2)
-
-  ## now bind this all back to neusData
-  az <- neusDataFinal %>%
-    dplyr::left_join(.,osmwrite, by = "PORTID")
 
   if (saveToFile) {
-    saveRDS(az,here::here("data-raw/REVENUE_cleanports.rds"))
+    saveRDS(allData,here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
     saveRDS(neusOutside,here::here("data-raw/REVENUE_outsidemodel.rds"))
   }
 
-  return(list(neus=az,noneus=neusOutside))
+  return(list(neus=allData,noneus=neusOutside))
 
   ## Deal with rec data
 
