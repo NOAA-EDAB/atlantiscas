@@ -1,4 +1,4 @@
-#' Process Gerets fleet data
+#' Process Gerets fleet data. CAMS only
 #'
 #' Read in fishing data, fix problems, add lat, lon to ports and other
 #' data cleaning#'
@@ -13,28 +13,19 @@
 process_data <- function(){
 
   ## Read in commercial fishing data
-  # VTR data
-  data1 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_Neus_Atlantis_com_1996_2007_Sept2023.rds")) |>
+  # CAMS data
+  data1 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_NEUS_ATLANTIS_CAMS_1996_2021_portids.rds")) |>
     tibble::as_tibble() |>
-    dplyr::rename(PORTID = PORT,
+    dplyr::rename(PORTID = CAMS_PORT,
                   STATE = STATE1,
-                  PORT = PORTLND1)
-
-  # DMIS DATA
-  data2 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_Neus_Atlantis_com_2008_2021_Sept2023.rds")) |>
-    tibble::as_tibble()  |>
-    dplyr::mutate(NESPP3 = as.double(NESPP3))  |>
-    dplyr::rename(PORTID = PORT,
-                  STATE = STATE1,
-                  PORT = PORTLND1)  |>
+                  PORT = PORTLND1)|>
     dplyr::select(-DOCID)
 
   ## clean fishing data
-  # Convert VTR data to match DMIS
   # need to clean data for duplicate species names. eg. DRUM, BLACK and BLACK DRUM
   # SQUID (LOLIGO), SHRIMP (NK) etc
   # split names by comma and reorder
-  fixdata1 <- data1  |>
+  commercialData <- data1  |>
     dplyr::mutate(SPPNM = stringr::str_remove(SPPNM,"\\(BIG\\)"))  |>
     dplyr::mutate(SPPNM = stringr::str_replace_all(SPPNM," \\(",", "))  |>
     dplyr::mutate(SPPNM = stringr::str_remove(SPPNM,"\\)"))  |>
@@ -48,40 +39,44 @@ process_data <- function(){
     dplyr::rename(SPPNM = SP)
 
   rm(data1)
-  # join data
-  # change data type
-  # reorder NK species from CLAM NK to NK CLAM
-  commercialData <- rbind(fixdata1,data2)
-  rm(data2)
-  rm(fixdata1)
 
-  commericalData <- commercialData |>
+  # convert to numeric and reorder NK species
+  commercialData <- commercialData |>
     dplyr::mutate(Year = as.numeric(Year),
                   TRIPID = as.numeric(TRIPID)) |>
     tidyr::separate(col = SPPNM,into = c("first","last"),sep=" NK",remove=F) |>
     dplyr::mutate(SP = dplyr::case_when(is.na(last) ~ SPPNM,
                                         TRUE ~ paste("NK",first))) |>
     dplyr::select(-first,-last,-SPPNM) |>
-    dplyr::rename(SPPNM = SP)
+    dplyr::rename(SPPNM = SP) |>
+    dplyr::mutate(NESPP3 =as.numeric(NESPP3)) |>
+    dplyr::mutate(Area = gsub(" ","_",Area))
 
-  #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
+  # fix data types for future joins
+  commercialData <- commercialData |>
+    dplyr::mutate(NESPP3 = as.double(NESPP3))
+
+  saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
   commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
 
   commercialData <- atlantiscas::assign_species_codes(commercialData)
-  ## clean up species
-  # read in neus groups. pull from neus-atlantis repo
 
-  #atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
+  # assign lat and lon to ports
 
   ## save intermediate data for test scallops
-  scallopData <- commercialData |>
-    dplyr::filter(GEARCAT %in% c("DREDGE SCALLOP","TRAWL BOTTOM SCALLOP","Scallop Gear"))
+  # scallopData <- commercialData |>
+  #   dplyr::filter(GEARCAT %in% c("DREDGE SCALLOP","TRAWL BOTTOM SCALLOP","Scallop Gear"))
 
-  saveRDS(scallopData,here::here("data/scallopData.rds"))
+  cleanData <- readRDS(here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
+  scallopData <- cleanData |>
+    dplyr::filter(GEARCAT %in% "Scallop Gear")
+
+  saveRDS(scallopData,here::here("data/scallopDataCAMS.rds"))
 
 
 
   # current data not assigned to an atlantis group
+  # need to resolve this.
   dataToSplit <-  commercialData |> dplyr::filter(is.na(Code))
   # plot of this data
   dataToSplit |>
@@ -93,7 +88,7 @@ process_data <- function(){
     ggplot2::facet_wrap(~as.factor(SPPNM),scales = "free_y")
 
   # look a skates
-  fullData |>
+  commercialData |>
     dplyr::filter(grepl("SKATE",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
     dplyr::summarise(lbs = sum(InsideLANDED),
@@ -103,7 +98,7 @@ process_data <- function(){
     ggplot2::facet_wrap(~SPPNM)
 
   # look a squid
-  commericalData |>
+  commercialData |>
     dplyr::filter(grepl("SQUID",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
     dplyr::summarise(lbs = sum(InsideLANDED),
@@ -113,9 +108,41 @@ process_data <- function(){
     ggplot2::facet_wrap(~SPPNM)
 
 
+  # LOOK AT SHARKS
+  commercialData |>
+    dplyr::filter(grepl("SHARK",SPPNM)) |>
+    dplyr::group_by(Year,NESPP3,SPPNM) |>
+    dplyr::summarise(lbs = sum(InsideLANDED),
+                     .groups = "drop") |>
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::facet_wrap(~SPPNM)
 
-  # deal with missing codes
-  #
+
+  # LOOK AT dogfish
+  commercialData |>
+    dplyr::filter(grepl("DOGFISH",SPPNM)) |>
+    dplyr::group_by(Year,NESPP3,SPPNM) |>
+    dplyr::summarise(lbs = sum(InsideLANDED),
+                     .groups = "drop") |>
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::facet_wrap(~SPPNM)
+
+  # LOOK AT dogfish
+  commercialData |>
+    dplyr::filter(grepl("CLAM",SPPNM)) |>
+    dplyr::group_by(Year,NESPP3,SPPNM) |>
+    dplyr::summarise(lbs = sum(InsideLANDED),
+                     .groups = "drop") |>
+    ggplot2::ggplot() +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::facet_wrap(~SPPNM)
+
+  # deal with missing codes (OTHER FISH?)
+  # Ignore NS SQUID, NK DOGFISH, NK CLAM
+  # SKATES need to be split up
+  # NK SHARKS need to be split up
 
 
   ## read in rec landings
