@@ -62,12 +62,13 @@ process_data <- function(){
   commercialData <- atlantiscas::assign_species_codes(commercialData)
 
   # assign lat and lon to ports
+  cleanedData <- assign_latlon_ports(commercialData,saveToFile=T)
 
   ## save intermediate data for test scallops
-  # scallopData <- commercialData |>
-  #   dplyr::filter(GEARCAT %in% c("DREDGE SCALLOP","TRAWL BOTTOM SCALLOP","Scallop Gear"))
-
+  #cleanData <- cleanedData$neus
   cleanData <- readRDS(here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
+
+
   scallopData <- cleanData |>
     dplyr::filter(GEARCAT %in% "Scallop Gear")
 
