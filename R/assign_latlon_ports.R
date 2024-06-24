@@ -13,6 +13,7 @@
 #' 1. clean PORT Table with lat an lons
 #' 2. REVENUE file for ports within NEUS footprint
 #' 3. REVENUE flle for ports Outside NEUS footprint
+#' @export
 
 # 18175111 records
 # 19358 missing port ids
@@ -23,6 +24,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   # read in landings data
   #dat <- atlantiscas::read_data()
 
+  message("Assigning lat and lons")
   # deal with ports in states that lie within model
   neusData <- dat |>
     dplyr::mutate(PORTID = as.numeric(PORTID)) |>
