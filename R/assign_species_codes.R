@@ -9,7 +9,7 @@
 
 assign_species_codes <- function(commercialData){
 
-
+  message("Assigning species codes")
   atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/andy_speciesupdate/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
   #atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
 
