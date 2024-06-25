@@ -4,9 +4,9 @@
 #'
 #' @param fleetType character (scallop, groundfish)
 
-create_dataset <- function(fleettype) {
+create_dataset <- function(fleetType) {
 
-  cleanData <- readRDS(here::here("data-raw/processedData.rds"))
+  cleanData <- readRDS(here::here("data-raw/fishing/processedData.rds"))
   # just select commercial fleets within the NEUS domain
   cleanData <- cleanData$data
 
@@ -24,7 +24,7 @@ create_dataset <- function(fleettype) {
     stop("Please select an appropriate fleet type")
   }
 
-  return(fleeData)
+  return(fleetData)
 
 }
 
