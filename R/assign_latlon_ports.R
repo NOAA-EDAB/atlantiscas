@@ -99,6 +99,12 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   # manual fix for portid with 2 differnt ports that are not in port lookup table
   index <- pts2$PORTID == 224107 & !is.na(pts2$PORTID)
   pts2[index,]$ORIGPORT <- "BOOTHBAY HARBOR"
+  ## need NEW LONDON COUNTY
+  pts2 <- pts2 |>
+    dplyr::mutate(newcounty = dplyr::case_when(newcounty == "NEW LONDON" ~ "NEW LONDON COUNTY",
+                                               newcounty == "NEW HAVEN" ~ "NEW HAVEN COUNTY",
+                                               TRUE ~ newcounty))
+
 
   message("Running PORT, COUNTY, STATE through open street maps to get lat and lons")
   # run names of port, county, state through open street maps to get lat and lon
@@ -115,10 +121,29 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
     dplyr::filter(!is.na(lat))
 
   osmm <- keep
+
+  # check to makes sure we have distinct(PORTIDS)
+  tab <- osmm |>
+    dplyr::select(PORTID,newport,newcounty,STATEABB,lat,lon) |>
+    dplyr::distinct() |>
+    dplyr::group_by(PORTID) |>
+    dplyr::summarise(n = dplyr::n()) |>
+    dplyr::filter(n > 1)
+  if (nrow(tab) > 0) {
+    stop("duplicate PORTID")
+  }
+
   # select records with no no city
   tryagain <- osmpts |>
     dplyr::filter(is.na(lat)) |>
     dplyr::select(-lat,-lon)
+
+  # check if any portid in missing already have matches
+  matches <- intersect(tryagain$PORTID,osmm$PORTID)
+  if (length(matches) > 0){
+    stop("Extra work needed")
+  }
+
 
   message("Running COUNTY, STATE (from port table) through open street maps to get lat and lons")
   osmpt2 <- tidygeocoder::geocode(tryagain,
@@ -134,9 +159,61 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
 
   osmm <- rbind(osmm,keep)
 
+  # check to makes sure we have distinct(PORTIDS)
+  tab <- osmm |>
+    dplyr::select(PORTID,newport,newcounty,STATEABB,lat,lon) |>
+    dplyr::distinct() |>
+    dplyr::group_by(PORTID) |>
+    dplyr::summarise(n = dplyr::n()) |>
+    dplyr::filter(n > 1)
+  if (nrow(tab) > 0) {
+    stop("duplicate PORTID")
+  }
+
+
+  ## now ignore county and try port with state
+
+  # select records with no no city
+  tryagain <- osmpt2 |>
+    dplyr::filter(is.na(lat)) |>
+    dplyr::select(-lat,-lon)
+
+  message("Running PORT, STATE (from port table) through open street maps to get lat and lons")
+  osmpt2b <- tidygeocoder::geocode(tryagain,
+                                  city = newport,
+                                  #county=newcounty,
+                                  state = STATEABB,
+                                  lat=lat,
+                                  long= lon,
+                                  return_input = T,
+                                  method = "osm")
+
+  keep <- osmpt2b |>
+    dplyr::filter(!is.na(lat))
+
+  osmm <- rbind(osmm,keep)
+
+  # check to makes sure we have distinct(PORTIDS)
+  tab <- osmm |>
+    dplyr::select(PORTID,newport,newcounty,STATEABB,lat,lon) |>
+    dplyr::distinct() |>
+    dplyr::group_by(PORTID) |>
+    dplyr::summarise(n = dplyr::n()) |>
+    dplyr::filter(n > 1)
+  if (nrow(tab) > 0) {
+    stop("duplicate PORTID")
+  }
+
+  # select records with no no city
+  tryagain <- osmpt2b |>
+    dplyr::filter(is.na(lat)) |>
+    dplyr::select(-lat,-lon)
+
+
+
   ## trip id's without port info in tables
   ## use port info in origianl data, not assigned to a portid
-  missingports <- osmpt2 |>
+  missingports <- osmpt2b |>
     dplyr::filter(is.na(lat) & !is.na(PORTID)) |>
     dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("OTHER",ORIGPORT) ~ gsub("OTHER ","",ORIGPORT),
                                              TRUE ~ ORIGPORT)) |>
@@ -144,15 +221,18 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
                                               TRUE ~ COUNTY)  ) |>
     dplyr::mutate(ORIGPORT = dplyr::case_when(grepl("HAMPTON BAY",ORIGPORT) ~ "HAMPTON BAYS",
                                                TRUE ~ ORIGPORT)  ) |>
-    dplyr::select(-c(lat,lon))
+    dplyr::select(-c(lat,lon)) |>
+    dplyr::distinct()
 
+  # check if any portid in missing already have matches
+  matches <- intersect(missingports$PORTID,osmm$PORTID)
+  if (length(matches) > 0){
+    stop("Extra work needed")
+  }
 
-
-
-  message("Running COUNTY, STATE (from data) through open street maps to get lat and lons.")
+  message("Running PORT, STATE (from data) through open street maps to get lat and lons.")
   osmpt3 <- tidygeocoder::geocode(missingports,
                                   city = ORIGPORT,
-                                  #county=newcounty,
                                   state = ORIGSTATE,
                                   lat=lat,
                                   long= lon,
@@ -164,6 +244,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
 
   osmm <- rbind(osmm,keep)
 
+  # select distinct ports
   ports <- osmm |>
     dplyr::select(PORTID,newport,newcounty,lat,lon) |>
     dplyr::distinct()
@@ -186,9 +267,8 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   missingports <- osmpt3 |>
     dplyr::filter(is.na(lat))
 
-  missing  <-  osmpt2 |>
-    dplyr::filter(is.na(lat) & is.na(PORTID)) |>
-    dplyr::filter(is.na(lat))
+  missing  <-  osmpt2b |>
+    dplyr::filter(is.na(lat) & is.na(PORTID))
 
   missingports <- rbind(missingports,missing)
 
@@ -202,6 +282,11 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
                                               TRUE ~ ORIGPORT)  ) |>
     dplyr::distinct()
 
+  neusDataNA <- neusDataNA |>
+    dplyr::mutate(PORT = dplyr::case_when(grepl("OTHER",PORT) ~ gsub("OTHER ","",PORT),
+                                              TRUE ~ PORT)) |>
+    dplyr::mutate(PORT = dplyr::case_when(grepl("HAMPTON BAY",PORT) ~ "HAMPTON BAYS",
+                                              TRUE ~ PORT)  )
 
   # match existing data
   fixed <- NULL
@@ -243,8 +328,15 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   fixed <- fixed |>
     dplyr::distinct()
 
-  osmm <- rbind(osmm,fixed) |>
-    dplyr::distinct()
+  # check if any portid in missing already have matches
+  matches <- intersect(fixed$PORTID,osmm$PORTID)
+  if (length(matches) > 0){
+    stop("Extra work needed")
+  }
+
+
+  # osmm <- rbind(osmm,fixed) |>
+  #   dplyr::distinct()
 
 
   newfixed <- fixed |>
@@ -254,7 +346,8 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   dataNA <- neusDataNA |>
     dplyr::select(-PORTID) |>
     dplyr::left_join(newfixed, by = c("PORT"="ORIGPORT","STATE"="ORIGSTATE")) |>
-    dplyr::relocate(PORTID)
+    dplyr::relocate(PORTID) |>
+    dplyr::filter(!is.na(PORTID))
 
   allData <- rbind(notNA,dataNA)
 
