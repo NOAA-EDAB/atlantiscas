@@ -23,9 +23,10 @@ library(magrittr)
 boundaryBoxes <- c(0,23:29)
 lbstotons <- 2204.62
 
-data <- read_data()$data
+allData <- read_data()$data
 
 ```
+
 ## Data Sources and cleaning
 
 Landings data by box at trip level provided by SSB for the communities at sea project
@@ -47,16 +48,18 @@ Explain the fields
 
 ```{r plotlandingsbybox, echo = F}
 # plot landings by box
-p <- data %>%
-  dplyr::group_by(Year,Area) %>% 
-  dplyr::summarise(tot = sum(InsideLANDED),.groups="drop") %>%
-  tidyr::separate(.,Area,into = c("first","box"),sep="BOX_ID_") %>% 
-  dplyr::mutate(box = as.numeric(box)) %>%
-  dplyr::mutate(boundaryBox = (box %in% boundaryBoxes)) %>% 
-  dplyr::select(-first) %>%
-  {. ->> d} %>%
+
+datap <- allData |> 
+  dplyr::group_by(Year,Area) |> 
+  dplyr::summarise(tot = sum(InsideLANDED),
+                   .groups="drop")  |> 
+  tidyr::separate(Area,into = c("first","box"),sep="BOX_ID_")  |>  
+  dplyr::mutate(box = as.numeric(box))  |> 
+  dplyr::mutate(boundaryBox = (box %in% boundaryBoxes)) |> 
+  dplyr::select(-first)
+#  {. ->> d} %>%
   #dplyr::filter(box <= 22 & box > 0) %>%
-  ggplot2::ggplot(.) +
+p <- ggplot2::ggplot(datap) +
   ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=tot/lbstotons,color = boundaryBox)) +
   ggplot2::facet_wrap(ggplot2::vars(box),scales = "fixed")  +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) + 
@@ -66,20 +69,21 @@ p <- data %>%
 suppressMessages(print(p))
 
 ```
+
 ```{r, plotcatchbox, echo = F}
   # plot catch by box
-  p <- data %>%
-    dplyr::group_by(Area) %>%
+  p <- allData  |> 
+    dplyr::group_by(Area)  |> 
     dplyr::summarise(tot = sum(InsideLANDED),
-                     .groups="drop") %>%
-    tidyr::separate(.,Area,into = c("first","box"),sep="BOX_ID_") %>%
+                     .groups="drop")  |> 
+    tidyr::separate(Area,into = c("first","box"),sep="BOX_ID_") |> 
     dplyr::mutate(box = dplyr::case_when(as.numeric(box) < 10 ~ paste0("0",box),
-                                         TRUE ~ box)) %>%
-    dplyr::mutate(box = as.factor(box)) %>%
-    dplyr::select(-first) %>%
-    ggplot2::ggplot(.) +
+                                         TRUE ~ box)) |> 
+    dplyr::mutate(box = as.factor(box)) |> 
+    dplyr::select(-first) |> 
+    ggplot2::ggplot() +
     ggplot2::geom_col(ggplot2::aes(x=box,y=tot/(1000*lbstotons))) +
-    ggplot2::ggtitle(paste("Total catch by Atlantis box from",paste(range(data$Year),collapse = "-"))) +
+    ggplot2::ggtitle(paste("Total catch by Atlantis box from",paste(range(allData$Year),collapse = "-"))) +
     ggplot2::ylab("Metric tonnes (thousands)")+
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5))
 
@@ -89,7 +93,7 @@ print(p)
 
 ```{r plotboxprop,echo = F}
   # plot proportion of catch by box
-  p <- data %>%
+  p <- allData %>%
     dplyr::group_by(Area) %>%
     dplyr::summarise(tot = sum(InsideLANDED),
                      .groups="drop") %>%
@@ -101,7 +105,7 @@ print(p)
     dplyr::mutate(prop = tot/sum(tot)) %>%
     ggplot2::ggplot(.) +
     ggplot2::geom_col(ggplot2::aes(x=box,y=prop)) +
-    ggplot2::ggtitle(paste("Proportion of total catch by Atlantis box",paste(range(data$Year),collapse = "-"))) +
+    ggplot2::ggtitle(paste("Proportion of total catch by Atlantis box",paste(range(allData$Year),collapse = "-"))) +
     ggplot2::ylab("Proportion") +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90, vjust = 0.5))
 
@@ -116,7 +120,7 @@ Atlantis boundary boxes are not modelled like other boxes so we need to know how
 ```{r boundarybox, echo =F}
 
  # total landings by box (metric tons)
-  totData <- data %>%
+  totData <- allData %>%
     dplyr::group_by(Area) %>%
     dplyr::summarise(tot = sum(InsideLANDED)/lbstotons,
                      .groups="drop") %>%
@@ -139,7 +143,7 @@ Total landings in boundary boxes over the period 1996-2021 is `r bbtot` which ac
 
 ## Port level
 
-There are `r length(unique(data$PORTLANDED))` unique ports along the US eastern seaboard in which fish caught in the NEUS region are landed
+There are `r length(unique(allData$newport))` unique ports along the US eastern seaboard in which fish caught in the NEUS region are landed
 
 
 The Main ports in terms of landings (1000's metric tons)
@@ -148,8 +152,8 @@ The Main ports in terms of landings (1000's metric tons)
 
 
   ## box catch  at port level
-  totportboxdata <- data %>%
-    dplyr::group_by(PORTLANDED,STATE,Area) %>%
+  totportboxdata <- allData %>%
+    dplyr::group_by(newport,STATEABB,Area) %>%
     dplyr::summarise(tot = sum(InsideLANDED)/lbstotons,
                      .groups="drop") %>%
     tidyr::separate(.,Area,into = c("first","box"),sep="BOX_ID_") %>%
@@ -160,7 +164,7 @@ The Main ports in terms of landings (1000's metric tons)
 
   #landings by port, sum over boxes
   totportdata <- totportboxdata %>%
-    dplyr::group_by(PORTLANDED,STATE) %>%
+    dplyr::group_by(newport,STATEABB) %>%
     dplyr::summarise(tot = sum(tot),
                      .groups="drop")
   # Main ports for landings
@@ -179,7 +183,7 @@ Top 5 ports in each state based on landings (1000's metric tons)
 
   ## top 5 ports in each state
   landingstop5 <- totportdata |>
-    dplyr::group_by(STATE) |> 
+    dplyr::group_by(STATEABB) |> 
     dplyr::slice_max(order_by = tot, n = 5)
   
 
@@ -202,16 +206,15 @@ Note: CN = Canadian ports
   portlevel <- c("CN","ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA","NC","SC","GA","FL")
   highlightarea <- c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA")
   totportdata %>%
-    dplyr::group_by(STATE) %>%
-    dplyr::mutate(STATE = factor(STATE,level=portlevel)) %>%
-    dplyr::summarise(numports = length(unique(PORTLANDED))) %>%
-    dplyr::filter(!is.na(STATE)) %>%
+    dplyr::group_by(STATEABB) %>%
+    dplyr::mutate(STATEABB = factor(STATEABB,level=portlevel)) %>%
+    dplyr::summarise(numports = length(unique(newport))) %>%
+    dplyr::filter(!is.na(STATEABB)) %>%
     dplyr::arrange(desc(numports)) %>%
-    {. ->> portd} %>%
     ggplot2::ggplot(.) +
-    ggplot2::geom_col(ggplot2::aes(x=STATE,y = numports)) +
+    ggplot2::geom_col(ggplot2::aes(x=STATEABB,y = numports)) +
     ggplot2::ylab("Number of ports") +
-    gghighlight::gghighlight(STATE %in% highlightarea)
+    gghighlight::gghighlight(STATEABB %in% highlightarea)
 
 ```
 
@@ -221,7 +224,7 @@ Note: CN = Canadian ports
   #landings by port in boundary boxes
   bbportdata <- totportboxdata %>%
     dplyr::filter(box %in% boundaryBoxes) %>%
-    dplyr::group_by(PORTLANDED,STATE) %>%
+    dplyr::group_by(newport,STATEABB) %>%
     dplyr::summarise(tot = sum(tot),
                      .groups="drop")
 
@@ -233,7 +236,7 @@ Are the fish landed from the boundary boxes distributed equally among ports or a
 ```{r portboundary, echo = F}
   # proportion of port landing from boundary box
   pp <- totportdata %>%
-    dplyr::left_join(.,bbportdata,by = c("PORTLANDED","STATE")) %>%
+    dplyr::left_join(.,bbportdata,by = c("newport","STATEABB")) %>%
     dplyr::mutate(prop = dplyr::case_when(is.na(tot.y) ~ 0,
                                           TRUE ~ tot.y/tot.x)) %>%
     dplyr::arrange(desc(prop))
@@ -246,14 +249,14 @@ Are the fish landed from the boundary boxes distributed equally among ports or a
 ## Landings by State
 
 ```{r stateland, echo = F}
-  data %>%
-    dplyr::group_by(Year,STATE) %>%
+  allData %>%
+    dplyr::group_by(Year,STATEABB) %>%
     dplyr::summarise(tot = sum(InsideLANDED)/lbstotons,.groups="drop") %>%
     ggplot2::ggplot(.) +
     ggplot2::geom_col(ggplot2::aes(x=as.numeric(Year),y=tot)) +
 
     #ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=tot)) +
-    ggplot2::facet_wrap(ggplot2::vars(STATE),scales = "free_y") +
+    ggplot2::facet_wrap(ggplot2::vars(STATEABB),scales = "free_y") +
     ggplot2::theme(axis.text.x=ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1)) + 
   ggplot2::ylab("Metric Tons (1000s)") + 
   ggplot2::xlab("") + 
@@ -265,8 +268,8 @@ Are the fish landed from the boundary boxes distributed equally among ports or a
 Missing State/port designations appear in data. This results in a number if trip not being able to be attributed to a port. Table shows number of trips with missing port/state information
 
 ```{r missingports,echo = F}
- data %>%
-    dplyr::filter(is.na(STATE)) %>%
+ allData %>%
+    dplyr::filter(is.na(STATEABB)) %>%
     dplyr::group_by(Year) %>%
     dplyr::summarise(numTrips=dplyr::n()) %>%
   DT::datatable()
@@ -277,7 +280,7 @@ Missing State/port designations appear in data. This results in a number if trip
 A trip is identified by unique TRIPID.
 
 ```{r numrips, echo = F}
-p <- data %>%
+p <- allData %>%
     dplyr::mutate(Year = as.numeric(Year),
                   TRIPID = as.numeric(TRIPID)) %>%
     dplyr::group_by(Year) %>%
@@ -294,33 +297,19 @@ print(p)
 ## Gear categories
 
 ```{r gearcodes ,echo = F}
-# vtr data
-d1 <- data %>%
-  dplyr::filter(Year < 2008) %>%
-  dplyr::distinct(GEARCODE, GEARCAT) 
-
-# dmis
-d2 <- data %>% 
-  dplyr::filter(Year >=2008) %>%
-  dplyr::distinct(GEARCODE, GEARCAT) 
-
-
-d1 %>%
-  dplyr::full_join(.,d2, by = c("GEARCODE")) %>%
-  dplyr::rename(VTR = GEARCAT.x,
-                DMIS = GEARCAT.y) %>%
-  dplyr::arrange(DMIS) %>%
+# cams data
+allData %>%
+  dplyr::distinct(GEARCODE, GEARCAT) %>%
   { . ->> gearTable} %>%
   DT::datatable()
-  
+
 ```
 
 
 
-There are no GEARCODEs in DMIS that have missing GEARCATs. VTR and DMIS GEARCAT descriptions match. The distinct Gear categories from DMIS are :
+There are no GEARCODEs that have missing GEARCATs. The distinct Gear categories DMIS are :
 ```{r dmiscats, echo =FALSE}
-data %>% 
-  dplyr::filter(Year >=2008) %>%
+allData %>% 
   dplyr::distinct(GEARCAT) %>%
   dplyr::arrange(GEARCAT) %>%
   DT::datatable(options=list(lengthMenu=list(c("20")),paging=T))
@@ -329,25 +318,22 @@ data %>%
 
 ## Landings by GEARCAT
 
-Map all DMIS codes/categories to VTR codes.
 Look at total landings by gear type/and box
 
 ```{r gearcat, echo = F}
-data %>%
-  dplyr::left_join(.,gearTable,by="GEARCODE") %>%
-  dplyr::select(-GEARCAT,-VTR) %>%
-  dplyr::rename(GEARCAT = DMIS) %>%
-  dplyr::group_by(Year,STATE,GEARCAT) %>%
-  dplyr::summarize(mt = sum(InsideLANDED)/lbstotons,groups="drop") %>% 
+allData %>%
+  dplyr::group_by(Year,STATEABB,GEARCAT) %>%
+  dplyr::summarize(mt = sum(InsideLANDED)/lbstotons,
+                   .groups="drop") %>% 
   {. ->> gearStateData} %>%
   ggplot2::ggplot(.) +
-  ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=mt,color=STATE)) +
+  ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=mt,color=STATEABB)) +
   ggplot2::facet_wrap(ggplot2::vars(GEARCAT)) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle=90))
   
 
 gearStateData %>% 
-  dplyr::group_by(STATE) %>%
+  dplyr::group_by(STATEABB) %>%
   dplyr::summarise(mt = ceiling(sum(mt)),.groups = "drop") %>% 
   dplyr::arrange(desc(mt)) %>% 
   DT::datatable()
@@ -379,7 +365,7 @@ neusGroups <- readr::read_csv(url("https://raw.githubusercontent.com/NOAA-EDAB/n
 
 # write out list of species with NA codes in Atlantis functional group names
 if(0) {
-data %>%
+allData %>%
   dplyr::left_join(.,neusGroups, by = "NESPP3") %>%
   dplyr::group_by(SPPNM,NESPP3,Code,Species) %>%
   dplyr::summarise(mt = sum(InsideLANDED)/lbstotons) %>%

@@ -29,6 +29,8 @@ navbar:
         href: articles/ExploreFishingData.html
       - text: Scallop Example
         href: articles/scallops.html
+      - text: Demersal Fleet
+        href: articles/groundfishNEFleet.html
     slides:
       text: Presentations
       menu:

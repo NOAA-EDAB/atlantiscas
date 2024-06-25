@@ -2,7 +2,7 @@
 % Please edit documentation in R/process_data.R
 \name{process_data}
 \alias{process_data}
-\title{Process Gerets fleet data}
+\title{Process Gerets fleet data. CAMS only}
 \usage{
 process_data()
 }
@@ -11,5 +11,5 @@ list of commercial and rec data
 }
 \description{
 Read in fishing data, fix problems, add lat, lon to ports and other
-data cleaning#'
+data cleaning
 }

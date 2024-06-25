@@ -4,8 +4,8 @@
 \alias{assign_species_codes}
 \title{assign species codes to atlantis groups}
 \usage{
-assign_species_codes(dat)
+assign_species_codes(commercialData)
 }
 \description{
-assign species codes to atlantis groups
+Reads species from dev branch of neus-atlantis
 }
