@@ -1,7 +1,7 @@
 #' Process Gerets fleet data. CAMS only
 #'
 #' Read in fishing data, fix problems, add lat, lon to ports and other
-#' data cleaning#'
+#' data cleaning
 #'
 #' @return list of commercial and rec data
 #'
@@ -12,6 +12,7 @@
 
 process_data <- function(){
 
+  message("Reading in CAMS data")
   ## Read in commercial fishing data
   # CAMS data
   data1 <- readRDS(here::here("data-raw/fishing","REVENUEFILE_NEUS_ATLANTIS_CAMS_1996_2021_portids.rds")) |>
@@ -56,25 +57,26 @@ process_data <- function(){
   commercialData <- commercialData |>
     dplyr::mutate(NESPP3 = as.double(NESPP3))
 
-  saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
-  commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+  # saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
+  # commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
 
   commercialData <- atlantiscas::assign_species_codes(commercialData)
 
   # assign lat and lon to ports
-  cleanedData <- assign_latlon_ports(commercialData,saveToFile=T)
+  cleanedData <- atlantiscas::assign_latlon_ports(commercialData,saveToFile=T)
 
   ## save intermediate data for test scallops
   #cleanData <- cleanedData$neus
-  cleanData <- readRDS(here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
+  # cleanData <- readRDS(here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
+  #
+  #
+  # scallopData <- cleanData |>
+  #   dplyr::filter(GEARCAT %in% "Scallop Gear")
+  #
+  # saveRDS(scallopData,here::here("data/scallopDataCAMS.rds"))
 
-
-  scallopData <- cleanData |>
-    dplyr::filter(GEARCAT %in% "Scallop Gear")
-
-  saveRDS(scallopData,here::here("data/scallopDataCAMS.rds"))
-
-
+  commercialData <- cleanedData$neus
+  commercialDataOutside <- cleanedData$noneus
 
   # current data not assigned to an atlantis group
   # need to resolve this.
@@ -164,7 +166,9 @@ process_data <- function(){
 
 
 
-  processedData <- list(data = commercialData, rec = recData)
+  processedData <- list(data = commercialData,
+                        outside= commercialDataOutside,
+                        rec = rec)
 
   saveRDS(processedData,here::here("data-raw/fishing/processedData.rds"))
 

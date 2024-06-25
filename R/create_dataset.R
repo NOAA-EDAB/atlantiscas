@@ -1,0 +1,30 @@
+#' Filter/create data sets for use in vignettes
+#'
+#' Read in the fully processed data and filters by gear type
+#'
+#' @param fleetType character (scallop, groundfish)
+
+create_dataset <- function(fleettype) {
+
+  cleanData <- readRDS(here::here("data-raw/processedData.rds"))
+  # just select commercial fleets within the NEUS domain
+  cleanData <- cleanData$data
+
+
+  if (tolower(fleetType) == "scallop") {
+    fleetData <- cleanData |>
+      dplyr::filter(GEARCAT == "Scallop Gear")
+
+  } else if (tolower(fleetType) == "groundfish") {
+    fleetData <-  cleanData |>
+      dplyr::filter(GEARCAT %in% c("Bottom Trawl","Sink Gillnet"))
+
+
+  } else {
+    stop("Please select an appropriate fleet type")
+  }
+
+  return(fleeData)
+
+}
+

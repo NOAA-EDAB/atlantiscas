@@ -10,7 +10,7 @@
 
 read_data <- function(){
 
-  fishingData <- readRDS(here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
+  fishingData <- readRDS(here::here("data-raw/fishing/processedData.rds"))
 
   return(fishingData)
 
