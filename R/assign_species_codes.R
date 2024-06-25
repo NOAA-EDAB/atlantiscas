@@ -25,13 +25,17 @@ assign_species_codes <- function(commercialData){
     dplyr::filter(dplyr::n()==1) |>
     print(n=30)
 
-  message("Species with the same NESPP3 code")
-  atlantisGroups |>
+  ss <- atlantisGroups |>
     dplyr::group_by(NESPP3) |>
     dplyr::distinct() |>
     dplyr::filter(!is.na(NESPP3)) |>
-    dplyr::filter(dplyr::n()>1) |>
-    print(n=30)
+    dplyr::filter(dplyr::n()>1)
+  if (nrow(ss) > 0) {
+    message("Species with the same NESPP3 code")
+    ss |> print(n=30)
+  }
+
+
 
   # check for NAs of NESPP3 codes in data
   if (nrow(commercialData |>
