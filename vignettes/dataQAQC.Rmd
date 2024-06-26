@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 library(atlantiscas)
 ```
 
-The fishing data is a combination of VTR (1996-2007) and DMIS (2008-2021) data.
+The fishing data is a pulled from CAMS (1996-2021) data.
 
 ```{r sampleData, echo = F}
 # read sample data and display it in a table
@@ -22,8 +22,6 @@ sampleData <- readRDS(here::here("data-raw/sampleFishingData.rds"))  |>
 DT::datatable(sampleData)
 ```
 
-
-Both have different lookup tables and formatting for species names (SPPNM), port names (PORT), gear categories (GEARCAT)
 
 ## Ports
 
@@ -35,7 +33,7 @@ Both have different lookup tables and formatting for species names (SPPNM), port
   
 All PORTID within the Atlantis domain were identified. Other PORTIDs were grouped into either Canadian ports (north of the atlantis domain) or southern ports (south of atlantis domain)
 
-PORTID was used to match PORTNM,COUNTY,STATE from the CFDBS.PORT table (VTR.VLPORTSYN contains too many typos). Port names were then used to find lat and lon values using `tidygeocoder` usig open street maps and online service `geocode.maps.co`. Many port names and/or counties had to be edited due to spelling errors, incorrect information, inconsistent formatting, or missing information. For example:
+PORTID was used to match PORTNM,COUNTY,STATE from the CAMS_GARFO.CFG_PORT table.Port names were then used to find lat and lon values using `tidygeocoder` using open street maps. Many port names and/or counties had to be edited due to spelling errors, incorrect information, inconsistent formatting, or missing information. For example:
 
   * SALISBURY COVE, ME -> SALSBURY COVE, ME (spelling)
   * (TOWN OF) -> (inconsistent formatting -removed text "(TOWN OF)" from port name)
@@ -43,6 +41,44 @@ PORTID was used to match PORTNM,COUNTY,STATE from the CFDBS.PORT table (VTR.VLPO
   * OTHER FAIRFIELD, FAIRFIELD, CT -> FAIRFIELD, FAIRFIELD, CT (missing port info)
   * COMBS CREEK, ST. MARYS, MD -> NA, ST.MARY'S, MD (not found on maps)
   * DUKES, DUKES, MA -> NA, DUKES, MA (no such port)
+  * ORRS ISLAND, ME <- ORR'S ISLAND, ME
+  * LONG ISLAND CUMBERLAND, ME <- LONG ISLAND, ME
+  * STUEBEN, ME  <- STEUBEN, ME
+  * WESTERLEY, RI <- WESTERLY, RI
+  * BARINGTON, RI <- BARRINGTON, RI
+  * DYERS BAY, ME <- STEUBEN, ME
+  * MATHAIS POINT, VA <- DAHLGREN, VA
+  * HAMPTON/SEABROOK, NH <- SEABROOK, NH
+  * HARRIMANS POINT, ME <- BROOKLIN, ME
+  * BROOKLIN, ME <- HANCOCK (COUNTY), ME
+  * KINGS (COUNTY), NY <- BROOKLYN (COUNTY)
+  
+The following phrases were removed from PORTNM:
+
+  * OTHER
+  * COUNTY 
+  * TOWN OF
+  * LYNNHAVEN
+  * CAPTREE
+  * PORT
+  * AQUINNAH
+  
+The following were removed from COUNTY
+
+  * CITY OF
+  * COUNTY (except from NEW LONDON COUNTY, NEW HAVEN COUNTY)
+  * NOT-SPECIFIED
+
+Lat and lons were found by matching the port data in the folloiing order
+
+  * PORTNM, COUNTY, STATE
+  * COUNTY, STATE
+  * PORTNM, STATE
+  
+The remaining records in the data with ports that did not have a PORTID were then matched to existing/known ports (with PORTIDs) based on the recorded PORTLANDED, STATE values.
+
+Some records (negligible) were discarded since there was no identifying port, or state associated with the catch)
+
 
 ## Species 
 
@@ -52,6 +88,7 @@ PORTID was used to match PORTNM,COUNTY,STATE from the CFDBS.PORT table (VTR.VLPO
   * LOBSTER was replaced by AMERICAN LOBSTER
   * LOLIGO SQUID was replaced by LONGFIN SQUID
   * OTHER FISH have 2 codes (526,529)
+  
 * Several NESPP3 codes are catch alls. For example:
   * NS SQUIDS
     * 803: MKTNM = UNCLASSIFIED 
