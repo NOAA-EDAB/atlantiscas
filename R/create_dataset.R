@@ -1,8 +1,12 @@
 #' Filter/create data sets for use in vignettes
 #'
-#' Read in the fully processed data and filters by gear type
+#' Read in the fully processed data and filter by gear type
 #'
 #' @param fleetType character (scallop, groundfish)
+#'
+#' @return data frame
+#'
+#' @export
 
 create_dataset <- function(fleetType) {
 
