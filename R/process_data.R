@@ -8,7 +8,6 @@
 #'
 #' @export
 
-#channel <- dbutils::connect_to_database("sole","abeet")
 
 process_data <- function(){
 
@@ -57,23 +56,14 @@ process_data <- function(){
   commercialData <- commercialData |>
     dplyr::mutate(NESPP3 = as.double(NESPP3))
 
-  # saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
-  # commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+   #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
+   commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+   #dat <- readRDS(here::here("data-raw/commercialdata.rds"))
 
   commercialData <- atlantiscas::assign_species_codes(commercialData)
 
   # assign lat and lon to ports
   cleanedData <- atlantiscas::assign_latlon_ports(commercialData,saveToFile=T)
-
-  ## save intermediate data for test scallops
-  #cleanData <- cleanedData$neus
-  # cleanData <- readRDS(here::here("data-raw/REVENUE_cleanports_CAMS.rds"))
-  #
-  #
-  # scallopData <- cleanData |>
-  #   dplyr::filter(GEARCAT %in% "Scallop Gear")
-  #
-  # saveRDS(scallopData,here::here("data/scallopDataCAMS.rds"))
 
   commercialData <- cleanedData$neus
   commercialDataOutside <- cleanedData$noneus
