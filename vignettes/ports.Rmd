@@ -1,0 +1,84 @@
+---
+title: "Ports"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Ports}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r setup, warning=FALSE, echo = F}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(atlantiscas)
+library(ncdf4)
+library(sf)
+```
+
+Take a look at the commercial fishing data from view of port landed. 
+
+```{r portData, echo = F}
+lbstotons <- 2204.62
+# read data
+getData <- read_data()
+allData <- getData$data |> 
+  dplyr::mutate(InsideLANDED = InsideLANDED/lbstotons)
+  
+
+
+```
+
+Show maps for each state in NEUS
+
+```{r makefigs, echo = F}
+ # aggregate total landings by port
+  dd <- allData |> 
+    dplyr::group_by(PORTID,PORTNM,STATEABB,lat,lon) |> 
+    dplyr::summarise(totalLandings = sum(InsideLANDED),
+                     .groups = "drop")
+
+
+  # plot total landings by location on map. use circle area to determine scale
+
+  shoreline <- sf::st_read(here::here("data-raw/gis/EASTCoastShoreline.shp"),
+                           quiet=T,
+                           drivers = "ESRI Shapefile")
+  box <- sf::st_bbox(shoreline)
+  crs <-  sf::st_crs(shoreline)
+  states <- sf::st_read(here::here("data-raw/gis/tl_2012_us_state.shp"),
+                        quiet=T,
+                        drivers = "ESRI Shapefile")  |> 
+    sf::st_transform(.,crs=crs) |> 
+    sf::st_crop(y=box)
+  neus <- NEFSCspatial::Neus_atlantis
+
+  h <- list()
+  # plot by state
+  for (astate in unique(dd$STATEABB[1])) {
+    #print(astate)
+    state <- states  |> 
+      dplyr::filter(STUSPS == astate)
+    dddata <- dd |> 
+      dplyr::filter(STATEABB == astate)
+
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_sf(data=shoreline,color = ggplot2::alpha("grey",.8)) +
+      ggplot2::geom_sf(data = neus,color=ggplot2::alpha("grey",0.4)) +
+      ggplot2::geom_sf(data = state) +
+      ggplot2::geom_point(data = dddata,
+                          mapping=ggplot2::aes(x=lon,y=lat,size=totalLandings),
+                          color="blue") +
+      ggplot2::ggtitle(paste0("Landings in ",astate," ports")) +
+      ggplot2::labs(size="Metric Tons")
+    
+  print(p)
+      #ggplot2::ggsave(here::here("data-raw",paste0(astate,"2.png")))
+
+  }
+
+```
