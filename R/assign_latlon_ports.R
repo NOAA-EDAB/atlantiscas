@@ -252,10 +252,28 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
 
   osmm <- rbind(osmm,fixed1)
 
+  ## Make fix for "ports" that have no information except for the state
+  states <- osmm |>
+    dplyr::filter(newcounty == "") |>
+    dplyr::select(-lat,-lon)
+
+  osmptstates <- tidygeocoder::geocode(states,
+                                   state = newport,
+                                   lat=lat,
+                                   long= lon,
+                                   return_input = T,
+                                   method = "osm")
+
+  nonstates <- osmm |>
+    dplyr::filter(newcounty != "")
+
+  osmm <- rbind(nonstates,osmptstates)
+
   # select distinct ports
   ports <- osmm |>
     dplyr::select(PORTID,newport,newcounty,STATEABB,lat,lon) |>
     dplyr::distinct()
+
 
   ### ALL data with a port ID now rectified. Join with data
 
@@ -299,7 +317,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
   # assign existing port id's, newport and new county to ports without an id
   fixed <- NULL
   for (irecord in 1:nrow(missingports)) {
-    print(irecord)
+    #print(irecord)
     record <- missingports[irecord,]
     port <- record$ORIGPORT
     county <- record$newcounty
@@ -351,6 +369,10 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
     dplyr::filter(!is.na(PORTID))
 
   allData <- rbind(notNA,dataNA)
+
+
+
+
 
   ##############################
 # SAve processed output
