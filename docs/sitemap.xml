@@ -16,6 +16,9 @@
     <loc>/articles/ExploreFishingData.html</loc>
   </url>
   <url>
+    <loc>/articles/groundfishNEFleet.html</loc>
+  </url>
+  <url>
     <loc>/articles/index.html</loc>
   </url>
   <url>
@@ -44,6 +47,9 @@
   </url>
   <url>
     <loc>/reference/compare_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/create_dataset.html</loc>
   </url>
   <url>
     <loc>/reference/get_port_lat_lon.html</loc>

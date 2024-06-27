@@ -69,7 +69,13 @@
       <a href="../articles/ExploreFishingData.html">Data Exploration</a>
     </li>
     <li>
-      <a href="../articles/scallops.html">Scallop Example</a>
+      <a href="../articles/ports.html">Port locations</a>
+    </li>
+    <li>
+      <a href="../articles/scallops.html">Sea Scallops</a>
+    </li>
+    <li>
+      <a href="../articles/groundfishNEFleet.html">NE Groundfish</a>
     </li>
   </ul>
 </li>
@@ -135,12 +141,9 @@
     
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">atlantiscas</span><span class="op">)</span></span></code></pre></div>
-<p>The fishing data is a combination of VTR (1996-2007) and DMIS
-(2008-2021) data.</p>
+<p>The fishing data is a pulled from CAMS (1996-2021) data.</p>
 <div class="datatables html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:auto;"></div>
-<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["1996","1996","1996","1996","1996","1996"],["VANDEMERE","VANDEMERE","BAYBORO","ORIENTAL","ORIENTAL","ORIENTAL"],["NC","NC","NC","NC","NC","NC"],["OTF","OTF","OTF","OTF","OTF","OTF"],["TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM"],[121,801,121,803,234,121],["SUMMER FLOUNDER","LOLIGO SQUID","SUMMER FLOUNDER","NS SQUIDS","MULLETS","SUMMER FLOUNDER"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Year<\/th>\n      <th>PORT<\/th>\n      <th>STATE<\/th>\n      <th>GEARCODE<\/th>\n      <th>GEARCAT<\/th>\n      <th>NESPP3<\/th>\n      <th>SPPNM<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":6},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"Year","targets":1},{"name":"PORT","targets":2},{"name":"STATE","targets":3},{"name":"GEARCODE","targets":4},{"name":"GEARCAT","targets":5},{"name":"NESPP3","targets":6},{"name":"SPPNM","targets":7}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><p>Both have different lookup tables and formatting for species names
-(SPPNM), port names (PORT), gear categories (GEARCAT)</p>
-<div class="section level2">
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["1996","1996","1996","1996","1996","1996"],["VANDEMERE","VANDEMERE","BAYBORO","ORIENTAL","ORIENTAL","ORIENTAL"],["NC","NC","NC","NC","NC","NC"],["OTF","OTF","OTF","OTF","OTF","OTF"],["TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM"],[121,801,121,803,234,121],["SUMMER FLOUNDER","LOLIGO SQUID","SUMMER FLOUNDER","NS SQUIDS","MULLETS","SUMMER FLOUNDER"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Year<\/th>\n      <th>PORT<\/th>\n      <th>STATE<\/th>\n      <th>GEARCODE<\/th>\n      <th>GEARCAT<\/th>\n      <th>NESPP3<\/th>\n      <th>SPPNM<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":6},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"Year","targets":1},{"name":"PORT","targets":2},{"name":"STATE","targets":3},{"name":"GEARCODE","targets":4},{"name":"GEARCAT","targets":5},{"name":"NESPP3","targets":6},{"name":"SPPNM","targets":7}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><div class="section level2">
 <h2 id="ports">Ports<a class="anchor" aria-label="anchor" href="#ports"></a>
 </h2>
 <ul>
@@ -159,10 +162,9 @@ maps</li>
 <p>All PORTID within the Atlantis domain were identified. Other PORTIDs
 were grouped into either Canadian ports (north of the atlantis domain)
 or southern ports (south of atlantis domain)</p>
-<p>PORTID was used to match PORTNM,COUNTY,STATE from the CFDBS.PORT
-table (VTR.VLPORTSYN contains too many typos). Port names were then used
-to find lat and lon values using <code>tidygeocoder</code> usig open
-street maps and online service <code>geocode.maps.co</code>. Many port
+<p>PORTID was used to match PORTNM,COUNTY,STATE from the
+CAMS_GARFO.CFG_PORT table.Port names were then used to find lat and lon
+values using <code>tidygeocoder</code> using open street maps. Many port
 names and/or counties had to be edited due to spelling errors, incorrect
 information, inconsistent formatting, or missing information. For
 example:</p>
@@ -177,7 +179,46 @@ from port name)</li>
 <li>COMBS CREEK, ST. MARYS, MD -&gt; NA, ST.MARY’S, MD (not found on
 maps)</li>
 <li>DUKES, DUKES, MA -&gt; NA, DUKES, MA (no such port)</li>
+<li>ORRS ISLAND, ME &lt;- ORR’S ISLAND, ME</li>
+<li>LONG ISLAND CUMBERLAND, ME &lt;- LONG ISLAND, ME</li>
+<li>STUEBEN, ME &lt;- STEUBEN, ME</li>
+<li>WESTERLEY, RI &lt;- WESTERLY, RI</li>
+<li>BARINGTON, RI &lt;- BARRINGTON, RI</li>
+<li>DYERS BAY, ME &lt;- STEUBEN, ME</li>
+<li>MATHAIS POINT, VA &lt;- DAHLGREN, VA</li>
+<li>HAMPTON/SEABROOK, NH &lt;- SEABROOK, NH</li>
+<li>HARRIMANS POINT, ME &lt;- BROOKLIN, ME</li>
+<li>BROOKLIN, ME &lt;- HANCOCK (COUNTY), ME</li>
+<li>KINGS (COUNTY), NY &lt;- BROOKLYN (COUNTY)</li>
 </ul>
+<p>The following phrases were removed from PORTNM:</p>
+<ul>
+<li>OTHER</li>
+<li>COUNTY</li>
+<li>TOWN OF</li>
+<li>LYNNHAVEN</li>
+<li>CAPTREE</li>
+<li>PORT</li>
+<li>AQUINNAH</li>
+</ul>
+<p>The following were removed from COUNTY</p>
+<ul>
+<li>CITY OF</li>
+<li>COUNTY (except from NEW LONDON COUNTY, NEW HAVEN COUNTY)</li>
+<li>NOT-SPECIFIED</li>
+</ul>
+<p>Lat and lons were found by matching the port data in the folloiing
+order</p>
+<ul>
+<li>PORTNM, COUNTY, STATE</li>
+<li>COUNTY, STATE</li>
+<li>PORTNM, STATE</li>
+</ul>
+<p>The remaining records in the data with ports that did not have a
+PORTID were then matched to existing/known ports (with PORTIDs) based on
+the recorded PORTLANDED, STATE values.</p>
+<p>Some records (negligible) were discarded since there was no
+identifying port, or state associated with the catch)</p>
 </div>
 <div class="section level2">
 <h2 id="species">Species<a class="anchor" aria-label="anchor" href="#species"></a>
