@@ -25,6 +25,7 @@ process_data <- function(){
   # need to clean data for duplicate species names. eg. DRUM, BLACK and BLACK DRUM
   # SQUID (LOLIGO), SHRIMP (NK) etc
   # split names by comma and reorder
+  message("Cleaning species names")
   commercialData <- data1  |>
     dplyr::mutate(SPPNM = stringr::str_remove(SPPNM,"\\(BIG\\)"))  |>
     dplyr::mutate(SPPNM = stringr::str_replace_all(SPPNM," \\(",", "))  |>
@@ -41,6 +42,7 @@ process_data <- function(){
   rm(data1)
 
   # convert to numeric and reorder NK species
+  message("Renaming NK species")
   commercialData <- commercialData |>
     dplyr::mutate(Year = as.numeric(Year),
                   TRIPID = as.numeric(TRIPID)) |>
@@ -57,7 +59,7 @@ process_data <- function(){
     dplyr::mutate(NESPP3 = as.double(NESPP3))
 
    #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
-   commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+   #commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
    #dat <- readRDS(here::here("data-raw/commercialdata.rds"))
 
   commercialData <- atlantiscas::assign_species_codes(commercialData)
@@ -67,70 +69,6 @@ process_data <- function(){
 
   commercialData <- cleanedData$neus
   commercialDataOutside <- cleanedData$noneus
-
-  # current data not assigned to an atlantis group
-  # need to resolve this.
-  dataToSplit <-  commercialData |> dplyr::filter(is.na(Code))
-  # plot of this data
-  dataToSplit |>
-    dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=lbs)) +
-    ggplot2::facet_wrap(~as.factor(SPPNM),scales = "free_y")
-
-  # look a skates
-  commercialData |>
-    dplyr::filter(grepl("SKATE",SPPNM)) |>
-    dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
-
-  # look a squid
-  commercialData |>
-    dplyr::filter(grepl("SQUID",SPPNM)) |>
-    dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
-
-
-  # LOOK AT SHARKS
-  commercialData |>
-    dplyr::filter(grepl("SHARK",SPPNM)) |>
-    dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
-
-
-  # LOOK AT dogfish
-  commercialData |>
-    dplyr::filter(grepl("DOGFISH",SPPNM)) |>
-    dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
-
-  # LOOK AT dogfish
-  commercialData |>
-    dplyr::filter(grepl("CLAM",SPPNM)) |>
-    dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
 
   # deal with missing codes (OTHER FISH?)
   # Ignore NS SQUID, NK DOGFISH, NK CLAM
