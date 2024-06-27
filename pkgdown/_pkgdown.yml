@@ -27,9 +27,11 @@ navbar:
         href: articles/dataQAQC.html
       - text: Data Exploration
         href: articles/ExploreFishingData.html
-      - text: Scallop Example
+      - text: Port locations
+        href: articles/ports.html
+      - text: Sea Scallops
         href: articles/scallops.html
-      - text: Demersal Fleet
+      - text: NE Groundfish
         href: articles/groundfishNEFleet.html
     slides:
       text: Presentations
