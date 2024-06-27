@@ -9,6 +9,12 @@ create_dataset(fleetType)
 \arguments{
 \item{fleetType}{character (scallop, groundfish)}
 }
+\value{
+list of 3 data frames
+\item{neus}{commercial data from states within NEUS footprint}
+\item{outside}{commercial data from states outside NEUS footprint}
+\item{rec}{recreational data from all states}
+}
 \description{
-Read in the fully processed data and filters by gear type
+Read in the fully processed data and filter by gear type
 }

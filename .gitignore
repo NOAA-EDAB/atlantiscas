@@ -11,6 +11,8 @@ inst/doc
 # folders
 other
 !docs
+data-raw/ports
+data-raw/fishing
 
 # files
 !*.png
