@@ -261,7 +261,7 @@ Total landings in boundary boxes over the period 1996-2021 is `r bbtot` which ac
 
 ## Port level
 
-There are `r length(unique(allData$newport)) + length(unique(outSideData$PORTID))` unique ports along the US eastern seaboard in which fish caught in the NEUS region are landed. `r length(unique(allData$newport))` are within NEUS
+There are `r length(unique(allData$newport)) + length(unique(outsideData$PORTID))` unique ports along the US eastern seaboard in which fish caught in the NEUS region are landed. `r length(unique(allData$newport))` are within NEUS
 
 
 The Main ports in terms of landings (1000's metric tons). Only states within the model are considered
@@ -319,11 +319,39 @@ Top 5 ports in each state based on landings (1000's metric tons)
 Lighly shaded bars indicate ports that lie outside of the NEUS footprint.
 Note: CN = Canadian ports
 
-```{r portsbystate, echo=F}
+```{r portsbystateall, echo =FALSE}
 
   # plot number of ports by state
   portlevel <- c("CN","ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA","NC","SC","GA","FL")
   highlightarea <- c("ME","NH","MA","RI","CT","NY","NJ","PA","DE","MD","VA")
+  ## box catch  at port level
+  outsideData2 <- outsideData |>
+    dplyr::mutate(newport=PORTID,
+                  newcounty=NA,
+                  lat=NA,
+                  lon=NA) |> 
+    dplyr::relocate(names(allData))
+  
+  
+  combinedData <- rbind(allData,outsideData2)
+
+  totportboxdata <- combinedData %>%
+    dplyr::group_by(newport,STATEABB,Area) %>%
+    dplyr::summarise(tot = sum(InsideLANDED)/lbstotons,
+                     .groups="drop") %>%
+    tidyr::separate(.,Area,into = c("first","box"),sep="BOX_ID_") %>%
+    dplyr::mutate(box = dplyr::case_when(as.numeric(box) < 10 ~ paste0("0",box),
+                                         TRUE ~ box)) %>%
+    dplyr::mutate(box = as.factor(box)) %>%
+    dplyr::select(-first)
+
+  #landings by port, sum over boxes
+  totportdata <- totportboxdata %>%
+    dplyr::group_by(newport,STATEABB) %>%
+    dplyr::summarise(tot = sum(tot),
+                     .groups="drop")
+  # plot number of ports by state
+
   totportdata %>%
     dplyr::group_by(STATEABB) %>%
     dplyr::mutate(STATEABB = factor(STATEABB,level=portlevel)) %>%
@@ -334,7 +362,6 @@ Note: CN = Canadian ports
     ggplot2::geom_col(ggplot2::aes(x=STATEABB,y = numports)) +
     ggplot2::ylab("Number of ports") +
     gghighlight::gghighlight(STATEABB %in% highlightarea)
-
 ```
 
 
@@ -499,7 +526,8 @@ allData |>
                      .groups = "drop") |>
     ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
+    ggplot2::facet_wrap(~SPPNM) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
@@ -507,7 +535,7 @@ allData |>
 
 All species identified as a SQUID in the data
 
-```{r skates, echo = F}
+```{r squid, echo = F}
 allData |>
     dplyr::filter(grepl("SQUID",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
@@ -515,7 +543,8 @@ allData |>
                      .groups = "drop") |>
     ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
+    ggplot2::facet_wrap(~SPPNM) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
@@ -523,7 +552,7 @@ allData |>
 
 All species identified as a SHARK in the data
 
-```{r skates, echo = F}
+```{r shark, echo = F}
 allData |>
     dplyr::filter(grepl("SHARK",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
@@ -531,7 +560,8 @@ allData |>
                      .groups = "drop") |>
     ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
+    ggplot2::facet_wrap(~SPPNM) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
@@ -540,7 +570,7 @@ allData |>
 
 All species identified as a DOGFISH in the data
 
-```{r skates, echo = F}
+```{r dogfish, echo = F}
 allData |>
     dplyr::filter(grepl("DOGFISH",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
@@ -548,7 +578,8 @@ allData |>
                      .groups = "drop") |>
     ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
+    ggplot2::facet_wrap(~SPPNM) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
@@ -556,7 +587,7 @@ allData |>
 
 All species identified as a CLAM in the data
 
-```{r skates, echo = F}
+```{r clam, echo = F}
 allData |>
     dplyr::filter(grepl("CLAM",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
@@ -564,7 +595,8 @@ allData |>
                      .groups = "drop") |>
     ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
-    ggplot2::facet_wrap(~SPPNM)
+    ggplot2::facet_wrap(~SPPNM) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
