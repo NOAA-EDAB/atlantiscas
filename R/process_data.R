@@ -59,10 +59,13 @@ process_data <- function(){
     dplyr::mutate(NESPP3 = as.double(NESPP3))
 
    #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
-   #commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+  #commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
    #dat <- readRDS(here::here("data-raw/commercialdata.rds"))
 
+  # Add Atlantis codes to NESPP3 codes
   commercialData <- atlantiscas::assign_species_codes(commercialData)
+  # Deal with "catch all" groups
+  commercialData <- atlantiscas::assign_unclassified_groups(commercialData)
 
   # assign lat and lon to ports
   cleanedData <- atlantiscas::assign_latlon_ports(commercialData,saveToFile=T)
