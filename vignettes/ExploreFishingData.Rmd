@@ -378,7 +378,7 @@ Note: CN = Canadian ports
   
 ```
 
-Are the fish landed from the boundary boxes distributed equally among ports or are some ports heavily reliant from landings in these boxes
+Are the fish landed from the boundary boxes distributed equally among ports or are some ports heavily reliant from landings in these boxes. 
 
 ```{r portboundary, echo = F}
   # proportion of port landing from boundary box
@@ -405,7 +405,7 @@ Are the fish landed from the boundary boxes distributed equally among ports or a
     #ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=tot)) +
     ggplot2::facet_wrap(ggplot2::vars(STATEABB),scales = "free_y") +
     ggplot2::theme(axis.text.x=ggplot2::element_text(angle = 90, vjust = 0.5, hjust=1)) + 
-  ggplot2::ylab("Metric Tons (1000s)") + 
+  ggplot2::ylab("Metric Tons ") + 
   ggplot2::xlab("") + 
   ggplot2::ggtitle("Landings by State")
 
@@ -505,11 +505,16 @@ There are some species without an atlantis code assigned. Some of these are "cat
 p<- allData |> 
   dplyr::filter(is.na(Code)) |>
   dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
-                     .groups = "drop") |>
-    ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=lbs)) +
-    ggplot2::facet_wrap(~as.factor(SPPNM),scales = "free_y")
+  dplyr::summarise(landed = sum(InsideLANDED)/lbstotons,
+                   .groups = "drop") |>
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y=landed,group=1)) +
+  ggplot2::geom_point(ggplot2::aes(x=as.numeric(Year),y=landed)) +
+  ggplot2::facet_wrap(~as.factor(SPPNM),scales = "free_y") +
+  ggplot2::ggtitle("Species with unmatched Atlantis codes") +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Metric Tons")
+
 
 suppressWarnings(print(p))
 
@@ -522,12 +527,13 @@ All species identified as a SKATE in the data
 allData |>
     dplyr::filter(grepl("SKATE",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
+    dplyr::summarise(landed = sum(InsideLANDED)/lbstotons,
                      .groups = "drop") |>
     ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = landed)) +
     ggplot2::facet_wrap(~SPPNM) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  +
+  ggplot2::ylab("Metric Tons")
 
 ```
 
@@ -539,12 +545,13 @@ All species identified as a SQUID in the data
 allData |>
     dplyr::filter(grepl("SQUID",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
+    dplyr::summarise(landed = sum(InsideLANDED)/lbstotons,
                      .groups = "drop") |>
     ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = landed)) +
     ggplot2::facet_wrap(~SPPNM) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  +
+  ggplot2::ylab("Metric Tons")
 
 ```
 
@@ -556,12 +563,13 @@ All species identified as a SHARK in the data
 allData |>
     dplyr::filter(grepl("SHARK",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
+    dplyr::summarise(landed = sum(InsideLANDED)/lbstotons,
                      .groups = "drop") |>
     ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = landed)) +
     ggplot2::facet_wrap(~SPPNM) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  +
+  ggplot2::ylab("Metric Tons")
 
 ```
 
@@ -574,12 +582,13 @@ All species identified as a DOGFISH in the data
 allData |>
     dplyr::filter(grepl("DOGFISH",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
+    dplyr::summarise(landed = sum(InsideLANDED)/lbstotons,
                      .groups = "drop") |>
     ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = landed)) +
     ggplot2::facet_wrap(~SPPNM) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  +
+  ggplot2::ylab("Metric Tons")
 
 ```
 
@@ -591,12 +600,13 @@ All species identified as a CLAM in the data
 allData |>
     dplyr::filter(grepl("CLAM",SPPNM)) |>
     dplyr::group_by(Year,NESPP3,SPPNM) |>
-    dplyr::summarise(lbs = sum(InsideLANDED),
+    dplyr::summarise(landed = sum(InsideLANDED)/lbstotons,
                      .groups = "drop") |>
     ggplot2::ggplot() +
-    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = lbs)) +
+    ggplot2::geom_line(ggplot2::aes(x=as.numeric(Year),y = landed)) +
     ggplot2::facet_wrap(~SPPNM) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  +
+  ggplot2::ylab("Metric Tons")
 
 ```
 

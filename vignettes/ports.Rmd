@@ -59,7 +59,7 @@ Show maps for each state in NEUS
 
   h <- list()
   # plot by state
-  for (astate in unique(dd$STATEABB[1])) {
+  for (astate in unique(dd$STATEABB)) {
     #print(astate)
     state <- states  |> 
       dplyr::filter(STUSPS == astate)

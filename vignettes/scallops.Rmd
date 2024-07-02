@@ -45,14 +45,16 @@ Gear Categories identified, in the data set, as scallop vessels were
 These GEARCAT(s) were filtered to provide the following output
 
 ```{r scallopData, echo = F}
+lbstotons <- 2204.62
 scallopData <- readRDS(here::here("data/scallopDataCAMS.rds"))
 
 sca <- scallopData$neus |> 
-  dplyr::mutate(Year = as.integer(Year))
+  dplyr::mutate(Year = as.integer(Year),
+                InsideLANDED = InsideLANDED/lbstotons)
 
 sca |> dplyr::distinct(GEARCAT,GEARCODE) |> 
   dplyr::arrange(GEARCAT) |> 
-  knitr::kable()
+  DT::datatable()
 ```
 
 ## Landings
@@ -62,7 +64,7 @@ The landings of Scallop trips with associated bycatch
 ```{r plotland1, echo = F}
 landings <- sca |> 
   dplyr::group_by(Year,Functional_Group) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
                      
 speciesLanded <- landings |> 
@@ -75,8 +77,9 @@ speciesLanded <- landings |>
 landings |> 
   dplyr::filter(Functional_Group %in% speciesLanded) |> 
   ggplot2::ggplot() + 
-  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landed)) +
   ggplot2::facet_wrap(~Functional_Group) +
+  ggplot2::ylab("Metric Tons") + 
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
@@ -87,7 +90,7 @@ landings |>
 landings <- sca |> 
   dplyr::filter(Code == "SCA") |>  
   dplyr::group_by(Year,STATEABB) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(landed = round(sum(InsideLANDED),digits=2),
                    .groups = "drop")
 
 ```
@@ -96,9 +99,9 @@ landings <- sca |>
 
 sca |> 
   dplyr::group_by(Functional_Group) |> 
-  dplyr::summarise(millionlbs = sum(InsideLANDED)/1000000,
+  dplyr::summarise(landed = round(sum(InsideLANDED),digits=2),
                    .groups = "drop") |> 
-  dplyr::arrange(desc(millionlbs)) |> 
+  dplyr::arrange(desc(landed)) |> 
   DT::datatable(options = list(pageLength = 10,
                                order = list(list(0, 'asc'))
           ))
@@ -111,14 +114,15 @@ sca |>
 landings <- sca |> 
   dplyr::filter(Code == "SCA") |>  
   dplyr::group_by(Year,STATEABB) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
                      
 landings |> 
   ggplot2::ggplot() + 
-  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landed)) +
   ggplot2::facet_wrap(~STATEABB) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  ggplot2::ylab("Metric Tons") + 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  
 
 ```
 
@@ -128,14 +132,14 @@ landings |>
 landings <- sca |> 
   dplyr::filter(Code == "SCA") |>  
   dplyr::group_by(Year,STATEABB,newport) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
 
 ports10 <- landings |> 
   dplyr::group_by(newport,STATEABB) |> 
-  dplyr::summarise(lbs = sum(lbs),
+  dplyr::summarise(landed = sum(landed),
                    .groups = "drop") |> 
-  dplyr::arrange(desc(lbs)) |> 
+  dplyr::arrange(desc(landed)) |> 
   dplyr::slice(1:10) |> 
   dplyr::pull(newport)
 
@@ -143,11 +147,12 @@ ports10 <- landings |>
 landings |> 
   dplyr::filter(newport %in% ports10) |> 
   dplyr::group_by(Year,newport) |> 
-  dplyr::summarise(lbs = sum(lbs),
+  dplyr::summarise(landed = sum(landed),
                    .groups="drop") |> 
   ggplot2::ggplot() + 
-  ggplot2::geom_line(ggplot2::aes(x=Year,y=lbs)) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landed)) +
   ggplot2::facet_wrap(~newport) +
+  ggplot2::ylab("Metric Tons") + 
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
@@ -160,12 +165,11 @@ compared to model output from v2.2.0
 landings <- sca |> 
   dplyr::filter(Code == "SCA") |>  
   dplyr::group_by(Year,Area) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop") |>
   tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
   dplyr::mutate(Box = as.numeric(Box)) |> 
-  dplyr::mutate(mt = lbs*0.000453592) |> 
-  dplyr::select(-text,-lbs) |> 
+  dplyr::select(-text) |> 
   dplyr::mutate(source = "CAMS")
 
 # Atlantis v2.2.0 scallop catch by box
@@ -187,9 +191,9 @@ d2 <- as.data.frame(dd) |>
   dplyr::mutate(t = as.integer(t),
                 Year = 1963+ceiling(t/5)) |> 
   dplyr::group_by(Box,Year) |> 
-  dplyr::summarise(mt = mean(value),
+  dplyr::summarise(landed = mean(value),
                    .groups="drop") |> 
-  dplyr::relocate(Year,Box,mt) |> 
+  dplyr::relocate(Year,Box,landed) |> 
   dplyr::mutate(source = "atlantis")
 
 dataF <- rbind(d2,landings) |> 
@@ -203,9 +207,10 @@ dataF <- rbind(d2,landings) |>
 
 dataF |> 
   ggplot2::ggplot() + 
-  ggplot2::geom_line(ggplot2::aes(x=Year,y=mt,color=source)) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landed,color=source)) +
   ggplot2::facet_wrap(~Box) +
-  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))
+  ggplot2::ylab("Metric Tons") + 
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
@@ -215,18 +220,18 @@ dataF |>
 dataBox <- dataF |> 
   dplyr::filter(source == "CAMS") |> 
   dplyr::group_by(Box) |> 
-  dplyr::summarise(mt = sum(mt))
+  dplyr::summarise(landed = sum(landed))
 
 # select boxes which account fo 95% of landings
 landings <- dataBox |> 
-  dplyr::arrange(desc(mt)) |> 
-  dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |> 
+  dplyr::arrange(desc(landed)) |> 
+  dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |> 
   dplyr::filter(prop <= 0.95)
 
 NEFSCspatial::Neus_atlantis |> 
   dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |> 
   ggplot2::ggplot() +
-  ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
+  ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
   ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
                         position = ggplot2::position_dodge(width=0.9),  size=3)  +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
@@ -243,9 +248,9 @@ Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 # pick out 3 busiest ports based on landings
 ports <- sca |> 
   dplyr::group_by(newport,PORTID,lat,lon) |> 
-  dplyr::summarise(lb = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop") |> 
-  dplyr::arrange(desc(lb)) |> 
+  dplyr::arrange(desc(landed)) |> 
   dplyr::slice(1:3) 
 
 portids <- ports |> dplyr::pull(PORTID)
@@ -253,12 +258,19 @@ portids <- ports |> dplyr::pull(PORTID)
 landings <- sca |> 
   dplyr::filter(Code == "SCA",PORTID %in% portids) |>  
   dplyr::group_by(Year,Area,PORTID) |> 
-  dplyr::summarise(lbs = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop") |>
   tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
   dplyr::mutate(Box = as.numeric(Box)) |> 
-  dplyr::mutate(mt = lbs*0.000453592) |> 
-  dplyr::select(-text,-lbs)
+  dplyr::select(-text)
+
+
+maxBoxLandings <- landings |> 
+  dplyr::group_by(PORTID,Box) |> 
+  dplyr::summarise(tots = sum(landed),
+                   .groups = "drop") |> 
+  dplyr::pull(tots) |> 
+  max()
 
 # create map for each
 for (iport in portids) {
@@ -273,23 +285,27 @@ for (iport in portids) {
   dataBox <- landings |> 
     dplyr::filter(PORTID == iport) |> 
     dplyr::group_by(Box) |> 
-    dplyr::summarise(mt = sum(mt),
+    dplyr::summarise(landed = sum(landed),
                      .groups="drop")
   
   # create landings by box (summed over time)
   boxLandings <- dataBox |>
-  dplyr::arrange(desc(mt)) |>
-  dplyr::mutate(cumsum = cumsum(mt), prop = cumsum/sum(mt)) |>
+  dplyr::arrange(desc(landed)) |>
+  dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
   dplyr::filter(prop <= 0.95)
 
   # select boxes which account fo 95% of landings
   p <- NEFSCspatial::Neus_atlantis |>
     dplyr::left_join(boxLandings,by = c("BOX_ID"="Box"))  |>
     ggplot2::ggplot() +
-    ggplot2::geom_sf(ggplot2::aes(fill = mt)) +
+    ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
+    ggplot2::scale_fill_continuous(limits=c(0, maxBoxLandings))+
     ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
                           size=3) +
     ggplot2::geom_point(data = ports,
+                        mapping=ggplot2::aes(x=lon,y=lat),
+                        color="green") +
+    ggplot2::geom_point(data = ports |> dplyr::filter(PORTID == iport),
                         mapping=ggplot2::aes(x=lon,y=lat),
                         color="red") +
     ggplot2::geom_text(data = ports,
@@ -312,9 +328,9 @@ Location of ports that land scallops
 ```{r ports1, echo =F}
 ports <- sca |> 
   dplyr::group_by(newport,PORTID,lat,lon) |> 
-  dplyr::summarise(lb = sum(InsideLANDED),
+  dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop") |> 
-  dplyr::arrange(desc(lb)) 
+  dplyr::arrange(desc(landed)) 
 
 
 ```
@@ -329,7 +345,7 @@ ports <- sca |>
 effort <- sca |> 
   dplyr::group_by(Year,newport) |>
   dplyr::summarise(effort = sum(InsideDAS),
-                   lbs = sum(InsideLANDED),
+                   landed = sum(InsideLANDED),
                    .groups = "drop") |> 
   dplyr::filter(newport %in% ports10)
 # |> 

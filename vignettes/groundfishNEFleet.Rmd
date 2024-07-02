@@ -47,7 +47,9 @@ These GEARCAT(s) associated with groundfish species are:
 * Bottom Trawl
 * Sink Gillnet
 
-** Still need to separate some species (skates, sharks) **
+
+
+** Still need to separate some species (sharks) **
 
 
 ```{r groundfishdata, echo = F}
@@ -274,23 +276,91 @@ NEFSCspatial::Neus_atlantis |>
 Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 
 
+
+## Ports Landings and revenue
+
+Order the ports by NE groundfish landings and revenue.
+
+### Landings
+```{r ports1land, echo =F}
+ports <- gf |> 
+  dplyr::filter(Code %in% gfCodes) |> 
+  dplyr::mutate(lat = round(lat,digits=2),
+                lon = round(lon,digits = 2)) |> 
+  dplyr::group_by(newport,STATEABB,PORTID,lat,lon) |> 
+  dplyr::summarise(mt = round(sum(InsideLANDED)),
+                   .groups = "drop")  |> 
+  dplyr::arrange(desc(mt)) |> 
+  dplyr::mutate(cummt = cumsum(mt),
+                percent = round(cummt/sum(mt),digits=2)) |> 
+   DT::datatable()
+ports
+
+```
+
+### Revenue
+
+Note there are `r gf |> dplyr::filter(is.na(InsideREV)) |> nrow()` records where revenue is NA.
+Revenue has been deflated to xxxx using the GDP Implicit Price Deflator
+
+```{r ports1rev, echo =F}
+portsrev <- gf |> 
+  dplyr::filter(Code %in% gfCodes) |> 
+  dplyr::mutate(lat = round(lat,digits=2),
+                lon = round(lon,digits = 2)) |> 
+  dplyr::group_by(newport,STATEABB,PORTID,lat,lon) |> 
+  dplyr::summarise(revenue = round(sum(InsideREV,na.rm = T)),
+                   .groups = "drop")  |> 
+  dplyr::arrange(desc(revenue)) |> 
+  dplyr::mutate(cumrev = cumsum(revenue),
+                percent = round(cumrev/sum(revenue),digits=2)) |>
+  DT::datatable()
+portsrev
+
+```
+## Select the main ports
+
+The top ports ordered by landings or revenue are in relative agreement. The following ports are selected as the main ports to parameterize in the Atlantis model.
+
+* MAINE
+  * PORTLAND
+* NEWHAMPSHIRE
+  * PORTSMOUTH (SEABROOK)
+* MASSACHUSETTS
+  * GLOUCESTER
+  * BOSTON (SCITUATE)
+  * CHATHAM (PROVINCETOWN)
+  * NEW BEDFORD
+* RHODE ISLAND
+  * POINT JUDITH
+* CONNECTICUT
+  * none
+* NEW YORK
+  * MONTAUK
+  
+** Note: MONTAUK, NY added for historic reason (although it was in the top 20 ports)**
+
+```{r mainports, echo = F}
+mainPortsIDs = c(240403,240207,220101,240115,420209,240301,320201,350635)
+associatedPorts = data.frame(main=c(320201,240115,240301),associated=c(320901,240813,240601))
+```
+
+
 ## Landings (data) by box spatially for main ports
 
 ```{r plotland7, echo =F}
 
 # pick out 3 busiest ports based on landings
-ports <- gf |> 
-  dplyr::filter(Code %in% gfCodes) |> 
-  dplyr::group_by(newport,PORTID,lat,lon) |> 
-  dplyr::summarise(landed = sum(InsideLANDED),
-                   .groups = "drop") |> 
-  dplyr::arrange(desc(landed)) |> 
-  dplyr::slice(1:3) 
+ports <- unique(c(mainPortsIDs,associatedPorts$associated))
+portData <- gf |> 
+  dplyr::filter(PORTID %in% ports) |> 
+  dplyr::distinct(PORTID,newport,STATEABB,lat,lon) |> 
+  dplyr::arrange(desc(lat))
 
-portids <- ports |> dplyr::pull(PORTID)
 
 landings <- gf |> 
-  dplyr::filter(Code %in% gfCodes,PORTID %in% portids) |>  
+  dplyr::filter(Code %in% gfCodes,
+                PORTID %in% portData$PORTID) |>  
   dplyr::group_by(Year,Area,PORTID) |> 
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop") |>
@@ -298,10 +368,17 @@ landings <- gf |>
   dplyr::mutate(Box = as.numeric(Box)) |> 
   dplyr::select(-text)
 
+maxBoxLandings <- landings |> 
+  dplyr::group_by(PORTID,Box) |> 
+  dplyr::summarise(tots = sum(landed),
+                   .groups = "drop") |> 
+  dplyr::pull(tots) |> 
+  max()
+
 # create map for each
-for (iport in portids) {
+for (iport in portData$PORTID) {
   
-  portName <- ports |> 
+  portName <- portData |> 
     dplyr::filter(PORTID == iport) |> 
     dplyr::pull(newport)
   
@@ -319,22 +396,25 @@ for (iport in portids) {
   dplyr::arrange(desc(landed)) |>
   dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
   dplyr::filter(prop <= 0.95)
+  
+  
 
   # select boxes which account fo 95% of landings
   p <- NEFSCspatial::Neus_atlantis |>
     dplyr::left_join(boxLandings,by = c("BOX_ID"="Box"))  |>
     ggplot2::ggplot() +
     ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
+    ggplot2::scale_fill_continuous(limits=c(0, maxBoxLandings))+
     ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
                           size=3) +
-    ggplot2::geom_point(data = ports,
+    ggplot2::geom_point(data = portData,
                         mapping=ggplot2::aes(x=lon,y=lat),
                         color="green") +
-    ggplot2::geom_point(data = ports |> dplyr::filter(PORTID == iport),
+    ggplot2::geom_point(data = portData |> dplyr::filter(PORTID == iport),
                         mapping=ggplot2::aes(x=lon,y=lat),
                         color="red") +
 
-    ggplot2::geom_text(data = ports,
+    ggplot2::geom_text(data = portData,
                        ggplot2::aes(x=lon,y=lat,label = newport),
                        size = 2.5,
                        hjust=1, vjust=0) + 
@@ -346,23 +426,6 @@ for (iport in portids) {
 
 
 ```
-
-## Location of ports
-
-Location of ports that land gf
-
-```{r ports1, echo =F}
-ports <- gf |> 
-  dplyr::filter(Code %in% gfCodes) |> 
-  dplyr::group_by(newport,PORTID,lat,lon) |> 
-  dplyr::summarise(mt = round(sum(InsideLANDED)),
-                   .groups = "drop") |> 
-  dplyr::arrange(desc(mt)) |> 
-  DT::datatable()
-ports
-
-```
-
 
 
 ## Effort
