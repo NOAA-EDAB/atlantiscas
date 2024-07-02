@@ -3,14 +3,15 @@
 #' From VTR and CFDBS
 #'
 #' @param channel A connection object from dbutils::connect_to_database`
-#' @param write. Boolean. Write output to file
+#' @param write Boolean. Write output to file
 #'
+#'@export
 
-pull_port_tables <- function(channel,write = F) {
+pull_port_tables <- function(channel,saveToFile = F) {
   # pull from vtr
   portTableVTR <- DBI::dbGetQuery(channel,"select * from VTR.VLPORTSYN")
   # this is a mess!
-  if(write) {
+  if(saveToFile) {
     saveRDS(portTableVTR,here::here("data-raw/portTableVTR.rds"))
   }
 
@@ -53,7 +54,7 @@ pull_port_tables <- function(channel,write = F) {
   portTableCAMS$COUNTY[portTableCAMS$PORT == "BROOKLIN" & portTableCAMS$STATE=="ME"] <- "HANCOCK"
 
 
-  if(write) {
+  if(saveToFile) {
     saveRDS(portTableCAMS,here::here("data-raw/portTableCAMS.rds"))
   }
 
@@ -99,7 +100,7 @@ pull_port_tables <- function(channel,write = F) {
   #replace OTHER PORT with name of PORT
   portTableCFDBS$PORT <- gsub("OTHER ","",portTableCFDBS$PORT)
 
-  if(write) {
+  if(saveToFile) {
     saveRDS(portTableCFDBS,here::here("data-raw/portTableCFDBS.rds"))
   }
 
