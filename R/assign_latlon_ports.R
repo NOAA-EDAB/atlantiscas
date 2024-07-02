@@ -386,7 +386,7 @@ assign_latlon_ports <- function(dat,saveToFile=F) {
     dplyr::distinct()
 
   if(saveToFile) {
-    saveRDS(osmwrite,here::here("data-raw/portLatLon.rds"))
+    saveRDS(osmwrite,here::here("data/portLatLon.rds"))
   }
 
   #osmm <- readRDS(here::here("data-raw/portLatLon.rds"))

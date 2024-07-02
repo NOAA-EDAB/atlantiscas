@@ -2,9 +2,10 @@
 
 export(assign_latlon_ports)
 export(assign_species_codes)
+export(assign_unclassified_groups)
 export(compare_data)
 export(create_dataset)
-export(get_port_lat_lon)
 export(main_data_cleaning)
 export(process_data)
+export(pull_port_tables)
 export(read_data)
