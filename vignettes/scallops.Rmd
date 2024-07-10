@@ -9,7 +9,7 @@ vignette: >
 
 
 
-```{r setup, warning=FALSE}
+```{r setup, echo = F, warning=FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"

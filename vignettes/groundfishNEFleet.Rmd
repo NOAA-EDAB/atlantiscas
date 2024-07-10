@@ -440,7 +440,7 @@ for (iport in portData$PORTID) {
 ```
 
 
-## Aggregate Data to Final ports
+## Aggregate remaining data as "other" fleet
 
 The remaining ports (other than the ports listed above) make up ~10% of total landings. All trips associated with these ports will be combined to form one fleet which will fish in the footprint below. This maintains the communities at sea idea for the main ports but takes into account all remaining landings to satisfy model requirements
 
@@ -458,6 +458,7 @@ otherFleet <- gf |>
   dplyr::select(-text)
 
 otherFleetLandings <- sum(otherFleet$landed)
+timerange <- range(otherFleet$Year)
 
 otherFleetBox <- otherFleet |> 
   dplyr::group_by(Box) |> 
@@ -479,7 +480,11 @@ otherFleetBox <- otherFleet |>
   suppressWarnings(print(p))
 
 ```
-Total Landings over `r paste(timerange,collapse="-")` = `r otherFleetLandings` metric tons
+
+Total Landings over `r paste(timerange,collapse="-")` = `r round(otherFleetLandings)` metric tons
+
+Time series of landings by box of other fleet
+
 
 ```{r otherfleettime, echo = F}
 

@@ -22,6 +22,42 @@ sampleData <- readRDS(here::here("data-raw/sampleFishingData.rds"))  |>
 DT::datatable(sampleData)
 ```
 
+## Field Descriptions
+
+* Year -
+* IDNUM
+* Area
+* Inside
+* PORTLANDED
+* PORTLND1
+* STATE1
+* MONTH
+* DATESAIL
+* GEARCODE
+* GEARCAT
+* NESPP3
+* SPPNM
+* QTYKEPT
+* LIVE
+* REVENUE
+* FMP
+* DOCID
+* TRIPID
+* PERMIT         
+* SOURCE
+* DEALNUM
+* DAS
+* InsideREV
+* InsideLANDED
+* InsideDAS
+* nominal_revenue
+* YEAR
+* CAMS_PORT
+* CFG_PORT
+* PORT_NAME
+* STATE_ABB
+
+We also need mesh size (`VTR_MESH`), target species (`FISHERY_GROUP`), and vessel size (`VES_LEN`, `VES_GRTONS`) information for each trip. We would like these fields to aid in data cleaning (eg. distinguish squid trips from groundfish) To get this we will need to join this data with `CAMS_GARFO.CAMS_SUBTRIP` table by `IDNUM`=`VTR_IMGID`. Then check `CAMS_VTR_ORPHANS_SUBTRIP` for absence of matches. This unfortunately doen't work since `VTR_IMGID` which is defined as an ID at the subtrip level, is not! There are multiple cases where this definition is violated and thus results in a many-to-many relationship and hence duplicated data. This can not be reolved in a timely manner.
 
 ## Ports
 

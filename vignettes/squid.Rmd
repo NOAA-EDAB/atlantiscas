@@ -42,7 +42,6 @@ tripids <- lan |>
   dplyr::distinct(TRIPID) |>
   dplyr::pull(TRIPID)
 
-gc()
 
 ```
 
@@ -86,7 +85,7 @@ Squid trips selected by the percentage of squid landings in each trip
 
 # pick out 3 busiest ports based on landings
 
-for (p in seq(0.5,1.0,0.1)) {
+for (p in seq(0.3,1.0,0.1)) {
   #message(p)
 
   groundfish <- squidTripLand |>
@@ -128,6 +127,13 @@ for (p in seq(0.5,1.0,0.1)) {
 
   suppressWarnings(print(p))
 }
+
+```
+
+
+
+```{r ,echo = F}
+
 
 
 ```
