@@ -55,6 +55,7 @@ These GEARCAT(s) associated with groundfish species are:
 ```{r groundfishdata, echo = F}
 # CONVERT TO METRIC TONS
 lbstotons <- 2204.62
+boundaryBoxes <- c(0,23:29)
 gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds")) 
 gf <- gfData$neus |> 
   dplyr::mutate(Year = as.integer(Year)) |> 
@@ -65,6 +66,8 @@ gfCodes <- c("COD","HAD","YTF","POL","PLA","WTF","WHK","WIF","RED","HAL","WPF","
 gf |> dplyr::distinct(GEARCAT,GEARCODE) |> 
   dplyr::arrange(GEARCAT) |> 
   DT::datatable()
+
+timeRange <- range(gf$Year)
 ```
 
 ## Landings
@@ -209,7 +212,11 @@ landings <- gf |>
   tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
   dplyr::mutate(Box = as.numeric(Box)) |> 
   dplyr::select(-text) |> 
-  dplyr::mutate(source = "CAMS")
+  dplyr::mutate(source = "CAMS") |> 
+  dplyr::mutate(boundary = dplyr::case_when(!(Box %in% boundaryBoxes) ~ "NEUS domain",
+                                            .default = "Boundary Box")) 
+
+
 
 # Compare to atlantis
 
@@ -246,11 +253,13 @@ dataF |>
   ggplot2::geom_line(ggplot2::aes(x=Year,y=landed,color=source)) +
   ggplot2::facet_wrap(~Box) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
-  ggplot2::ylab("Metric Tons")
+  ggplot2::ylab("Metric Tons") 
 
 ```
 
 ## Landings (data) by box spatially
+
+Landings are displayed for the Boxes which cumulatively make up 95% of the landings.
 
 ```{r plotland6, echo =F}
 dataBox <- dataF |> 
@@ -348,6 +357,9 @@ associatedPorts = data.frame(main=c(320201,240115,240301),associated=c(320901,24
 
 ## Landings (data) by box spatially for main ports
 
+
+Landings are displayed for the Boxes which cumulatively make up 95% of the landings.
+
 ```{r plotland7, echo =F}
 
 # pick out 3 busiest ports based on landings
@@ -393,9 +405,9 @@ for (iport in portData$PORTID) {
   
   # create landings by box (summed over time)
   boxLandings <- dataBox |>
-  dplyr::arrange(desc(landed)) |>
-  dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
-  dplyr::filter(prop <= 0.95)
+    dplyr::arrange(desc(landed)) |>
+    dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
+    dplyr::filter(prop <= 0.95)
   
   
 
@@ -427,6 +439,63 @@ for (iport in portData$PORTID) {
 
 ```
 
+
+## Aggregate Data to Final ports
+
+The remaining ports (other than the ports listed above) make up ~10% of total landings. All trips associated with these ports will be combined to form one fleet which will fish in the footprint below. This maintains the communities at sea idea for the main ports but takes into account all remaining landings to satisfy model requirements
+
+```{r otherfleet,echo = F}
+ports <- unique(c(mainPortsIDs,associatedPorts$associated))
+
+otherFleet <- gf |> 
+  dplyr::filter(!(PORTID %in% ports),
+                Code %in% gfCodes) |> 
+  dplyr::group_by(Year,Area) |> 
+  dplyr::summarise(landed = sum(InsideLANDED),
+                   .groups = "drop") |>
+  tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
+  dplyr::mutate(Box = as.numeric(Box)) |> 
+  dplyr::select(-text)
+
+otherFleetLandings <- sum(otherFleet$landed)
+
+otherFleetBox <- otherFleet |> 
+  dplyr::group_by(Box) |> 
+  dplyr::summarise(landed = sum(landed),
+                   .groups = "drop") 
+
+  
+  # select boxes which account fo 95% of landings
+  p <- NEFSCspatial::Neus_atlantis |>
+    dplyr::left_join(otherFleetBox,by = c("BOX_ID"="Box"))  |>
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
+    #ggplot2::scale_fill_continuous(limits=c(0, maxBoxLandings))+
+    ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
+                          size=3) +
+    ggplot2::ggtitle("Other Fleet") +
+    ggplot2::coord_sf(xlim = c(-80,-62)) 
+  
+  suppressWarnings(print(p))
+
+```
+Total Landings over `r paste(timerange,collapse="-")` = `r otherFleetLandings` metric tons
+
+```{r otherfleettime, echo = F}
+
+otherFleetBoundary <- 
+  otherFleet |> 
+  dplyr::mutate(boundary = dplyr::case_when(!(Box %in% boundaryBoxes) ~ "NEUS domain",
+                                            .default = "Boundary Box")) 
+  
+otherFleetBoundary |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landed,color = factor(boundary)))+
+  ggplot2::facet_wrap(~Box) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Metric Tons") +
+  ggplot2::labs(color=" ")
+```
 
 ## Effort
 
