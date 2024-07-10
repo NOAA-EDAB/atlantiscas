@@ -77,6 +77,9 @@
     <li>
       <a href="../articles/groundfishNEFleet.html">NE Groundfish</a>
     </li>
+    <li>
+      <a href="../articles/squid.html">Squid</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
@@ -168,7 +171,7 @@ multispecies (Groundfish) FMP</a> comprises the following species:</p>
 <li>Bottom Trawl</li>
 <li>Sink Gillnet</li>
 </ul>
-<p>** Still need to separate some species (skates, sharks) **</p>
+<p>** Still need to separate some species (sharks) **</p>
 <div class="datatables html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:auto;"></div>
 <script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["Bottom Trawl","Bottom Trawl","Bottom Trawl","Bottom Trawl","Bottom Trawl","Sink Gillnet"],["OTF","PTB","SES","OTO","OTT","GNS"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>GEARCAT<\/th>\n      <th>GEARCODE<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"GEARCAT","targets":1},{"name":"GEARCODE","targets":2}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
 </div>
@@ -216,6 +219,8 @@ multispecies (Groundfish) FMP</a> comprises the following species:</p>
 <div class="section level2">
 <h2 id="landings-data-by-box-spatially">Landings (data) by box spatially<a class="anchor" aria-label="anchor" href="#landings-data-by-box-spatially"></a>
 </h2>
+<p>Landings are displayed for the Boxes which cumulatively make up 95%
+of the landings.</p>
 <pre><code><span><span class="co">#&gt; Warning in st_point_on_surface.sfc(sf::st_zm(x)): st_point_on_surface may not</span></span>
 <span><span class="co">#&gt; give correct results for longitude/latitude data</span></span>
 <span><span class="co">#&gt; Warning: `position_dodge()` requires non-overlapping <span style="color: #00BB00;">x</span></span></span>
@@ -290,7 +295,22 @@ the top 20 ports)**</p>
 <div class="section level2">
 <h2 id="landings-data-by-box-spatially-for-main-ports">Landings (data) by box spatially for main ports<a class="anchor" aria-label="anchor" href="#landings-data-by-box-spatially-for-main-ports"></a>
 </h2>
+<p>Landings are displayed for the Boxes which cumulatively make up 95%
+of the landings.</p>
 <p><img src="groundfishNEFleet_files/figure-html/plotland7-1.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-2.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-3.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-4.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-5.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-6.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-7.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-8.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-9.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-10.png" width="700"><img src="groundfishNEFleet_files/figure-html/plotland7-11.png" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="aggregate-remaining-data-as-other-fleet">Aggregate remaining data as “other” fleet<a class="anchor" aria-label="anchor" href="#aggregate-remaining-data-as-other-fleet"></a>
+</h2>
+<p>The remaining ports (other than the ports listed above) make up ~10%
+of total landings. All trips associated with these ports will be
+combined to form one fleet which will fish in the footprint below. This
+maintains the communities at sea idea for the main ports but takes into
+account all remaining landings to satisfy model requirements</p>
+<p><img src="groundfishNEFleet_files/figure-html/otherfleet-1.png" width="700"></p>
+<p>Total Landings over 1996-2021 = 5.536^{4} metric tons</p>
+<p>Time series of landings by box of other fleet</p>
+<p><img src="groundfishNEFleet_files/figure-html/otherfleettime-1.png" width="700"></p>
 </div>
 <div class="section level2">
 <h2 id="effort">Effort<a class="anchor" aria-label="anchor" href="#effort"></a>

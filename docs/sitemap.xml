@@ -28,6 +28,9 @@
     <loc>/articles/scallops.html</loc>
   </url>
   <url>
+    <loc>/articles/squid.html</loc>
+  </url>
+  <url>
     <loc>/articles/SSBData.html</loc>
   </url>
   <url>
@@ -64,10 +67,16 @@
     <loc>/reference/main_data_cleaning.html</loc>
   </url>
   <url>
+    <loc>/reference/plot_nafo.html</loc>
+  </url>
+  <url>
     <loc>/reference/plot_ports.html</loc>
   </url>
   <url>
     <loc>/reference/process_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/pull_port_tables.html</loc>
   </url>
   <url>
     <loc>/reference/read_data.html</loc>

@@ -77,6 +77,9 @@
     <li>
       <a href="../articles/groundfishNEFleet.html">NE Groundfish</a>
     </li>
+    <li>
+      <a href="../articles/squid.html">Squid</a>
+    </li>
   </ul>
 </li>
 <li class="dropdown">
@@ -144,6 +147,58 @@
 <p>The fishing data is a pulled from CAMS (1996-2021) data.</p>
 <div class="datatables html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:auto;"></div>
 <script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6"],["1996","1996","1996","1996","1996","1996"],["VANDEMERE","VANDEMERE","BAYBORO","ORIENTAL","ORIENTAL","ORIENTAL"],["NC","NC","NC","NC","NC","NC"],["OTF","OTF","OTF","OTF","OTF","OTF"],["TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM","TRAWL BOTTOM"],[121,801,121,803,234,121],["SUMMER FLOUNDER","LOLIGO SQUID","SUMMER FLOUNDER","NS SQUIDS","MULLETS","SUMMER FLOUNDER"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Year<\/th>\n      <th>PORT<\/th>\n      <th>STATE<\/th>\n      <th>GEARCODE<\/th>\n      <th>GEARCAT<\/th>\n      <th>NESPP3<\/th>\n      <th>SPPNM<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"className":"dt-right","targets":6},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"Year","targets":1},{"name":"PORT","targets":2},{"name":"STATE","targets":3},{"name":"GEARCODE","targets":4},{"name":"GEARCAT","targets":5},{"name":"NESPP3","targets":6},{"name":"SPPNM","targets":7}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script><div class="section level2">
+<h2 id="field-descriptions">Field Descriptions<a class="anchor" aria-label="anchor" href="#field-descriptions"></a>
+</h2>
+<ul>
+<li>Year -</li>
+<li>IDNUM</li>
+<li>Area</li>
+<li>Inside</li>
+<li>PORTLANDED</li>
+<li>PORTLND1</li>
+<li>STATE1</li>
+<li>MONTH</li>
+<li>DATESAIL</li>
+<li>GEARCODE</li>
+<li>GEARCAT</li>
+<li>NESPP3</li>
+<li>SPPNM</li>
+<li>QTYKEPT</li>
+<li>LIVE</li>
+<li>REVENUE</li>
+<li>FMP</li>
+<li>DOCID</li>
+<li>TRIPID</li>
+<li>PERMIT<br>
+</li>
+<li>SOURCE</li>
+<li>DEALNUM</li>
+<li>DAS</li>
+<li>InsideREV</li>
+<li>InsideLANDED</li>
+<li>InsideDAS</li>
+<li>nominal_revenue</li>
+<li>YEAR</li>
+<li>CAMS_PORT</li>
+<li>CFG_PORT</li>
+<li>PORT_NAME</li>
+<li>STATE_ABB</li>
+</ul>
+<p>We also need mesh size (<code>VTR_MESH</code>), target species
+(<code>FISHERY_GROUP</code>), and vessel size (<code>VES_LEN</code>,
+<code>VES_GRTONS</code>) information for each trip. We would like these
+fields to aid in data cleaning (eg. distinguish squid trips from
+groundfish) To get this we will need to join this data with
+<code>CAMS_GARFO.CAMS_SUBTRIP</code> table by
+<code>IDNUM</code>=<code>VTR_IMGID</code>. Then check
+<code>CAMS_VTR_ORPHANS_SUBTRIP</code> for absence of matches. This
+unfortunately doen’t work since <code>VTR_IMGID</code> which is defined
+as an ID at the subtrip level, is not! There are multiple cases where
+this definition is violated and thus results in a many-to-many
+relationship and hence duplicated data. This can not be reolved in a
+timely manner.</p>
+</div>
+<div class="section level2">
 <h2 id="ports">Ports<a class="anchor" aria-label="anchor" href="#ports"></a>
 </h2>
 <ul>
