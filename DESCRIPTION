@@ -22,4 +22,7 @@ Imports:
     readxl,
     stringr,
     tibble,
-    tidyr
+    tidyr,
+    NEFSCspatial
+Remotes:
+    NEFSC/NEFSCspatial
