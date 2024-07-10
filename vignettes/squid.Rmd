@@ -1,0 +1,133 @@
+---
+title: "Squid"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Squid}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+
+
+```{r setup, warning=FALSE, echo = F}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(atlantiscas)
+library(ncdf4)
+library(sf)
+```
+
+
+Squid pose a data problem since they are caught primarily with the same gear as the [NE groundfish](articles/groundfishNEFleet). A method is required to identify squid trips and to separate these trips from the groundfish trips. Failure to do so will potentially skew the footprint and the effort for the NE groundfish fleet.
+
+```{r squiddata, echo = F}
+# CONVERT TO METRIC TONS
+lbstotons <- 2204.62
+boundaryBoxes <- c(0,23:29)
+fishingData <- read_data()$data |> 
+  dplyr::mutate(InsideLANDED/lbstotons)
+
+# sum landings by trip, gear, atlantis code
+lan <- fishingData |>
+  dplyr::group_by(TRIPID,GEARCAT,Code) |>
+  dplyr::summarise(land= sum(InsideLANDED),
+                   .groups="drop")
+
+# identify all trips that catch any squid
+tripids <- lan |>
+  dplyr::filter(Code %in% c("ISQ","LSQ")) |>
+  dplyr::distinct(TRIPID) |>
+  dplyr::pull(TRIPID)
+
+gc()
+
+```
+
+## How much squid landed in each trip?
+
+```{r squidpcent, echo = F}
+squidTrips <- lan |>
+  dplyr::filter(TRIPID %in% tripids)
+
+landings <- squidTrips |>
+  dplyr::mutate(squid = dplyr::case_when(Code %in% c("ISQ","LSQ") ~ land,
+                                         .default = NA))
+squidTot <- landings |>
+  dplyr::group_by(TRIPID,GEARCAT,) |>
+  dplyr::summarise(tot = sum(land),
+                   .groups = "drop")
+
+squidLand <- landings |>
+  dplyr::filter(Code %in% c("LSQ","ISQ")) |>
+  dplyr::group_by(TRIPID,GEARCAT) |>
+  dplyr::summarise(squid= sum(squid),
+                   .groups = "drop")
+
+squidTripLand <- squidLand |>
+  dplyr::left_join(squidTot, by = c("TRIPID","GEARCAT")) |>
+  dplyr::mutate(pcent = squid/tot)
+
+pcent <- squidTripLand |>
+  dplyr::pull(pcent)
+
+a <- hist(pcent, main="Proportion of landings that are squid",
+     xlab = "Proportion",ylab = "Number of Trips")
+
+```
+
+## Fishing footprint of squid trips
+
+Squid trips selected by the percentage of squid landings in each trip
+
+```{r squidfootprint, echo =F}
+
+# pick out 3 busiest ports based on landings
+
+for (p in seq(0.5,1.0,0.1)) {
+  #message(p)
+
+  groundfish <- squidTripLand |>
+    dplyr::filter(pcent >= p) |>
+    dplyr::pull(TRIPID)
+
+  dat <- fishingData |>
+    dplyr::filter(TRIPID %in% groundfish)
+
+  # dat |>
+  #   dplyr::group_by(GEARCAT) |>
+  #   dplyr::summarise(land = sum(InsideLANDED)) |>
+  #   dplyr::arrange(desc(land)) |>
+  #   print(n=20)
+
+  # spatial footprint
+  # select boxes which account fo 95% of landings
+
+  dataBox <- dat |>
+    tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |>
+    dplyr::mutate(Box = as.double(Box)) |>
+    dplyr::select(-text) |>
+    dplyr::group_by(Box) |>
+    dplyr::summarise(landed = sum(InsideLANDED),
+                     .groups = "drop") |>
+    dplyr::arrange(desc(landed)) |>
+    dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
+    dplyr::filter(prop <= 0.95)
+
+
+  p <- NEFSCspatial::Neus_atlantis |>
+    dplyr::left_join(dataBox,by = c("BOX_ID"="Box"))  |>
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
+    #ggplot2::scale_fill_continuous(limits=c(0, 4.5e08))+
+    ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
+                          position = ggplot2::position_dodge(width=0.9),  size=3) +
+    ggplot2::ggtitle(paste0("Trips with > ",100*p,"% of squid landings"))
+
+  suppressWarnings(print(p))
+}
+
+
+```
