@@ -46,6 +46,7 @@ These GEARCAT(s) were filtered to provide the following output
 
 ```{r scallopData, echo = F}
 lbstotons <- 2204.62
+boundaryBoxes <- c(0,23:29)
 scallopData <- readRDS(here::here("data/scallopDataCAMS.rds"))
 
 sca <- scallopData$neus |> 
