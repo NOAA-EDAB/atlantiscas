@@ -33,6 +33,8 @@ navbar:
         href: articles/scallops.html
       - text: NE Groundfish
         href: articles/groundfishNEFleet.html
+      - text: Squid
+        href: articles/squid.html
     slides:
       text: Presentations
       menu:
