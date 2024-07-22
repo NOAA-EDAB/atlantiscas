@@ -128,19 +128,22 @@ Some records (negligible) were discarded since there was no identifying port, or
 * Several NESPP3 codes are catch alls. For example:
   * NS SQUIDS
     * 803: MKTNM = UNCLASSIFIED 
-    * split landings 50/50 into atlantis groups ISQ/LSQ)
+    * Coded as 802 (ILLEX SQUID)
   * SKATES
     * 365: MKTNM = UNCLASSIFIED, SMALL (WINGS), LARGE (WINGS)
-    * Split into SK,LSK,WSK (proportions?)
+    * Assigned to Atlantis group SK (Other skates)
   * OTHER FISH
     * 526: MKTNM = HEADS, FOOD, SPAWN
     * 529: MKTNM = INDUSTRIAL
+    * Coded a either BPF (Other benthopelagic fish) or FDF (Misc. Demersal fish)  based on gear that catched them ("Bottom Trawl","Sink Gillnet","Lobster Pot","Other Pot","Bottom Longline","Scallop Gear") and ("Drift Gillnet","Midwater Trawl","Hand Gear","Pelagic Longline","Other Gear","Shrimp Trawl","Separator & Ruhle Trawl") respectively 
   * NK DOGFISH 
-    * 350: MKTNM: ROUND, TAILS, DRESSED, FINS
+    * 350: MKTNM: ROUND, TAILS, DRESSED, FINS. Codes as 352 (SPINY DOGFISH)
   * NK SHARK
     * 359: UNCLASSIFIED DRESSED/ROUND, FINS DRIED/FRESH/FROZEN,GUTTED,CHUNKS
+    * Left as is
   * NK CLAM
     * 764:
+    * Coded as 769 (SURF CLAM)
   * HAKE MIX RED & WHITE
     * 155:
   * SILVER&OFFSHIREHAKE MIX

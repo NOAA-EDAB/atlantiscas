@@ -522,7 +522,8 @@ suppressWarnings(print(p))
 
 ### Skates
 
-All species identified as a SKATE in the data
+All species identified as a SKATE in the data.
+Unknown skates were classed as "SKATES" and attributed to the Atlantis SK functional group
 ```{r skates, echo = F}
 allData |>
     dplyr::filter(grepl("SKATE",SPPNM)) |>
@@ -539,7 +540,8 @@ allData |>
 
 ### Squid
 
-All species identified as a SQUID in the data
+All species identified as a SQUID in the data.
+Unknown squid were coded as ILLEX SQUID
 
 ```{r squid, echo = F}
 allData |>
@@ -557,7 +559,8 @@ allData |>
 
 ### Shark
 
-All species identified as a SHARK in the data
+All species identified as a SHARK in the data.
+These were left as is
 
 ```{r shark, echo = F}
 allData |>
@@ -576,7 +579,8 @@ allData |>
 
 ### Dogfish
 
-All species identified as a DOGFISH in the data
+All species identified as a DOGFISH in the data.
+Unknowns were coded as SPINY DOGFISH
 
 ```{r dogfish, echo = F}
 allData |>
@@ -594,7 +598,8 @@ allData |>
 
 ### Clam
 
-All species identified as a CLAM in the data
+All species identified as a CLAM in the data.
+Unknowns were classed as SURF CLAM
 
 ```{r clam, echo = F}
 allData |>
