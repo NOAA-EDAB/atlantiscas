@@ -23,6 +23,10 @@ library(sf)
 
 Squid pose a data problem since they are caught primarily with the same gear as the [NE groundfish](articles/groundfishNEFleet). A method is required to identify squid trips and to separate these trips from the groundfish trips. Failure to do so will potentially skew the footprint and the effort for the NE groundfish fleet.
 
+Difference between groundfish and squid fishers
+
+* squid fishers use a smaller mesh net
+
 ```{r squiddata, echo = F}
 # CONVERT TO METRIC TONS
 lbstotons <- 2204.62
@@ -85,7 +89,7 @@ Squid trips selected by the percentage of squid landings in each trip
 
 # pick out 3 busiest ports based on landings
 
-for (p in seq(0.3,1.0,0.1)) {
+for (p in seq(0,1.0,0.1)) {
   #message(p)
 
   groundfish <- squidTripLand |>
@@ -130,10 +134,21 @@ for (p in seq(0.3,1.0,0.1)) {
 
 ```
 
+## Landings by port
 
+Uses 30% of landings as a squid trip definition
 
 ```{r ,echo = F}
-
-
+fishingData |> 
+  dplyr::filter(squidTrip == T) |> 
+  dplyr::mutate(lat = round(lat,digits=2),
+                lon = round(lon,digits = 2)) |> 
+  dplyr::group_by(newport,STATEABB,PORTID,lat,lon) |> 
+  dplyr::summarise(mt = round(sum(InsideLANDED)),
+                   .groups = "drop")  |> 
+  dplyr::arrange(desc(mt)) |> 
+  dplyr::mutate(cummt = cumsum(mt),
+                percent = round(cummt/sum(mt),digits=2)) |> 
+  DT::datatable()
 
 ```
