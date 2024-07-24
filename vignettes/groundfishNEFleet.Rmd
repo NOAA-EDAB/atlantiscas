@@ -327,38 +327,38 @@ portsrev <- gf |>
 portsrev
 
 ```
-## Select the main ports
+## Select the main ports {#sel}
 
 The top ports ordered by landings or revenue are in relative agreement. The following ports are selected as the main ports to parameterize in the Atlantis model.
 
 * MAINE
-  * PORTLAND
+  * PORTLAND (220101)
 * NEWHAMPSHIRE
-  * PORTSMOUTH (SEABROOK)
+  * PORTSMOUTH (SEABROOK) (320201, 320901)
 * MASSACHUSETTS
-  * GLOUCESTER
-  * BOSTON (SCITUATE)
-  * CHATHAM (PROVINCETOWN)
-  * NEW BEDFORD
+  * GLOUCESTER (240207)
+  * BOSTON (SCITUATE) (240115, 240813)
+  * CHATHAM (PROVINCETOWN) (240301, 240601)
+  * NEW BEDFORD (240403)
 * RHODE ISLAND
-  * POINT JUDITH
+  * POINT JUDITH (420209)
 * CONNECTICUT
   * none
 * NEW YORK
-  * MONTAUK
+  * MONTAUK (350635)
   
 ** Note: MONTAUK, NY added for historic reason (although it was in the top 20 ports)**
 
 ```{r mainports, echo = F}
 mainPortsIDs = c(240403,240207,220101,240115,420209,240301,320201,350635)
 associatedPorts = data.frame(main=c(320201,240115,240301),associated=c(320901,240813,240601))
+threshold1 <- .99
 ```
 
 
 ## Landings (data) by box spatially for main ports
 
-
-Landings are displayed for the Boxes which cumulatively make up 95% of the landings.
+Landings are displayed for the Boxes which cumulatively make up `r 100*threshold1`% of the landings.
 
 ```{r plotland7, echo =F}
 
@@ -407,7 +407,7 @@ for (iport in portData$PORTID) {
   boxLandings <- dataBox |>
     dplyr::arrange(desc(landed)) |>
     dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
-    dplyr::filter(prop <= 0.95)
+    dplyr::filter(prop <= threshold1)
   
   
 
@@ -504,29 +504,54 @@ otherFleetBoundary |>
 
 ## Effort
 
+The effort variable is Days at sea (DAS) and is a crude metric. Only integer values and rounded up to the nearest whole day. It is the length of the trip. 
+
+After aggregating the top ports based on the decisions found in this section {#sel} and combining all remaining ports into an "other fleet" we can look at the total effort by fleet in units: days at sea
+
+
 ```{r effort1, echo =F}
 
+ports <- unique(c(mainPortsIDs,associatedPorts$associated))
 
-effort <- gf |> 
-  dplyr::filter(Code %in% gfCodes) |> 
-  dplyr::group_by(Year,newport) |>
-  dplyr::summarise(effort = sum(InsideDAS),
-                   landed = sum(InsideLANDED),
-                   .groups = "drop") |> 
-  dplyr::filter(newport %in% ports10)
-# |> 
-#   tidyr::pivot_longer(-c(Year,PORTLANDED),names_to = "type",values_to = "value")
+effortByBox <- get_effort(gf,ports,associatedPorts)
 
-ggplot2::ggplot(effort) +
+annualEffort <- effortByBox |> 
+  dplyr::group_by(Year,newport,STATEABB) |> 
+  dplyr::summarise(effort = sum(effort),
+                   .groups="drop")
+
+ggplot2::ggplot(annualEffort) +
   ggplot2::geom_line(ggplot2::aes(x=Year,y=effort)) +
   ggplot2::facet_wrap(~as.factor(newport)) + 
   ggplot2::ylab("Effort (Days)") +
-  ggplot2::ggtitle("Effort by port for top 10 productive ports") +
+  ggplot2::ggtitle("Effort by port") +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
 ```
 
+## Effort by box
 
+Partition effort by box.
 
+Note: In atlantis effort is entered as as daily effort (days of effort per day). This equates to dividing the annual effort by 365 days. Her we show the effort by box for the top 3 ports (by landings)
 
+```{r effort2, echo =F}
+
+port3 <- head(ports10,3)
+
+boxEffort <- effortByBox |> 
+  dplyr::filter(newport %in% port3)
+
+for (aport in port3) {
+  p <- ggplot2::ggplot(boxEffort |> dplyr::filter(newport == aport)) +
+    ggplot2::geom_line(ggplot2::aes(x=Year,y=effort)) +
+    ggplot2::facet_wrap(~as.factor(Box)) + 
+    ggplot2::ylab("Effort (Days)") +
+    ggplot2::ggtitle(aport) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  
+  print(p)
+}
+
+```
 
