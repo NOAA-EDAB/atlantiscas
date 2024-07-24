@@ -15,7 +15,9 @@ assign_squid_trips <- function(allData, p = 0.3){
 
   # identify trips with certain %ae of squid catch
   # sum landings by trip, gear, atlantis code
+  message("Gear types filtered out first: Other Pot, Lobster Pot, Clam Dredge, Shrimp Trawl, Scallop Gear")
   lan <- allData |>
+    dplyr::filter(!(GEARCAT %in% c("Other Pot","Lobster Pot", "Clam Dredge", "Shrimp Trawl","Scallop Gear"))) |>
     dplyr::group_by(TRIPID,GEARCAT,Code) |>
     dplyr::summarise(land= sum(InsideLANDED),
                      .groups="drop")
