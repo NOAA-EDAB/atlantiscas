@@ -32,7 +32,8 @@ Difference between groundfish and squid fishers
 lbstotons <- 2204.62
 boundaryBoxes <- c(0,23:29)
 fishingData <- read_data()$data |> 
-  dplyr::mutate(InsideLANDED/lbstotons)
+  dplyr::mutate(InsideLANDED/lbstotons) |> 
+  dplyr::filter(GEARCAT != "Scallop Gear")
 
 # sum landings by trip, gear, atlantis code
 lan <- fishingData |>

@@ -47,6 +47,7 @@ These GEARCAT(s) were filtered to provide the following output
 ```{r scallopData, echo = F}
 lbstotons <- 2204.62
 boundaryBoxes <- c(0,23:29)
+speciesCodes <- "SCA"
 scallopData <- readRDS(here::here("data/scallopDataCAMS.rds"))
 
 sca <- scallopData$neus |> 
@@ -107,7 +108,7 @@ sca |>
 
 ```{r plotland3, echo = F}
 landings <- sca |> 
-  dplyr::filter(Code == "SCA") |>  
+  dplyr::filter(Code %in% speciesCodes) |>  
   dplyr::group_by(Year,STATEABB) |> 
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
@@ -125,7 +126,7 @@ landings |>
 
 ```{r plotland4, echo=F}
 landings <- sca |> 
-  dplyr::filter(Code == "SCA") |>  
+  dplyr::filter(Code %in% speciesCodes) |>  
   dplyr::group_by(Year,STATEABB,newport) |> 
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
@@ -166,6 +167,50 @@ ports <- sca |>
 DT::datatable(ports)
 ```
 
+## Timing of Landings
+
+What is the distribution of effort over the calendar year
+
+```{r timing1}
+sca |> 
+  dplyr::select(TRIPID,MONTH,InsideDAS) |> 
+  dplyr::distinct() |> 
+  dplyr::mutate(MONTH = as.factor(MONTH)) |> 
+  dplyr::group_by(MONTH) |> 
+  dplyr::summarise(effort = sum(InsideDAS),
+                   .groups = "drop") |> 
+  ggplot2::ggplot()+
+  ggplot2::geom_col(ggplot2::aes(x=MONTH,y=effort)) + 
+  ggplot2::ylab("Days at Sea") +
+  ggplot2::ggtitle(paste0(range(sca$Year),collapse="-"))
+
+
+
+```
+
+## Magnitude of Landings
+
+What is the distribution of landings over the calendar year
+
+```{r timing1}
+sca |> 
+  dplyr::filter(Code %in% speciesCodes) |> 
+  dplyr::select(MONTH,InsideLANDED) |> 
+  dplyr::mutate(MONTH = as.factor(MONTH)) |> 
+  dplyr::group_by(MONTH) |> 
+  dplyr::summarise(landings = sum(InsideLANDED),
+                   .groups = "drop") |> 
+  ggplot2::ggplot()+
+  ggplot2::geom_col(ggplot2::aes(x=MONTH,y=landings)) + 
+  ggplot2::ylab("Metric Tons") +
+  ggplot2::ggtitle(paste0(range(sca$Year),collapse="-"))
+
+
+
+```
+
+
+
 
 ## Select the main ports {#sel}
 
@@ -195,7 +240,7 @@ compared to model output from v2.2.0
 
 ```{r plotland5, echo=F}
 landings <- sca |> 
-  dplyr::filter(Code == "SCA") |>  
+  dplyr::filter(Code %in% speciesCodes) |>  
   dplyr::group_by(Year,Area) |> 
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop") |>
@@ -428,7 +473,10 @@ After aggregating the top ports based on the decisions found in this section {#s
 
 ports <- unique(c(mainPortsIDs,associatedPorts$associated))
 
-effortByBox <- get_effort(sca,ports,associatedPorts)
+effortLandByBox <- get_effort_landings(sca,ports,associatedPorts,speciesCodes)
+
+effortByBox <- effortLandByBox$effort
+landingsByBox <- effortLandByBox$landings
 
 annualEffort <- effortByBox |> 
   dplyr::group_by(Year,newport,STATEABB) |> 
@@ -444,11 +492,13 @@ ggplot2::ggplot(annualEffort) +
 
 ```
 
+
 ## Effort by box (Time series)
 
 Partition effort by box.
 
 Note: In atlantis effort is entered as as daily effort (days of effort per day). This equates to dividing the annual effort by 365 days. Here we show the effort by box for the top ports (by landings)
+
 
 ```{r effort2, echo =F}
 
@@ -473,15 +523,16 @@ for (aport in port3) {
 
 ```
 
+
 ## Landings by box (Time series)
 
 ```{r landingsboxtime, echo =F}
 
-boxEffort <- effortByBox |> 
+landBox<- landingsByBox |> 
   dplyr::filter(newport %in% port3)
 
 for (aport in port3) {
-  p <- ggplot2::ggplot(boxEffort |> dplyr::filter(newport == aport)) +
+  p <- ggplot2::ggplot(landBox |> dplyr::filter(newport == aport)) +
     ggplot2::geom_line(ggplot2::aes(x=Year,y=landings)) +
     ggplot2::facet_wrap(~as.factor(Box)) + 
     ggplot2::ylab("Metric Tons") +
