@@ -152,6 +152,14 @@ Some records (negligible) were discarded since there was no identifying port, or
   
 ## GEARS
   
-* Gear Codes have different Gear Categories assigned depending on VTR or DMIS data
-  *   Use DMIS codes
+Squid fleet is not designated but both squid fishers and groundfish fishers use the same GEARCAT. To distinguish squid trip were teased apart from groundfish trips based on the composition of the catch
+
+## Things to Do
+
+1. Landings by Canadian fleet - Look at NAFO data. May be too large of a statistical area to do much with since we'd need to map it to NEUS atlantis polygons.
+
+2. Vessel size, mesh size
+
+3. Could use permits to help differentiate squid/groundfish 
+
 
