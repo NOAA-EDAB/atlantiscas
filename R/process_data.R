@@ -59,7 +59,7 @@ process_data <- function(){
     dplyr::mutate(NESPP3 = as.double(NESPP3))
 
    #saveRDS(commercialData,here::here("data-raw/commercialdata.rds"))
-  commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
+  #commercialData <- readRDS(here::here("data-raw/commercialdata.rds"))
    #dat <- readRDS(here::here("data-raw/commercialdata.rds"))
 
   # Add Atlantis codes to NESPP3 codes

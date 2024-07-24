@@ -28,8 +28,8 @@ create_dataset <- function(fleetType) {
 
   } else if (tolower(fleetType) == "groundfish") {
     fleetData$neus <-  cleanData$data |>
-      dplyr::filter(GEARCAT %in% c("Bottom Trawl","Sink Gillnet")) |>
-      dplyr::filter(squidTrip == F)
+      dplyr::filter(GEARCAT %in% c("Bottom Trawl","Sink Gillnet"),
+                    squidTrip == F)
     fleetData$outsideneus <-  cleanData$outside |>
       dplyr::filter(GEARCAT %in% c("Bottom Trawl","Sink Gillnet"))
     fleetData$rec <-  cleanData$rec |>
