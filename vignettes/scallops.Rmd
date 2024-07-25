@@ -171,7 +171,7 @@ DT::datatable(ports)
 
 What is the distribution of effort over the calendar year
 
-```{r timing1}
+```{r sctiming1}
 sca |> 
   dplyr::select(TRIPID,MONTH,InsideDAS) |> 
   dplyr::distinct() |> 
@@ -192,7 +192,7 @@ sca |>
 
 What is the distribution of landings over the calendar year
 
-```{r timing1}
+```{r sctiming2}
 sca |> 
   dplyr::filter(Code %in% speciesCodes) |> 
   dplyr::select(MONTH,InsideLANDED) |> 
@@ -526,7 +526,7 @@ for (aport in port3) {
 
 ## Landings by box (Time series)
 
-```{r landingsboxtime, echo =F}
+```{r scalandingsboxtime, echo =F}
 
 landBox<- landingsByBox |> 
   dplyr::filter(newport %in% port3)

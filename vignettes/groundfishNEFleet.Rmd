@@ -204,7 +204,7 @@ landings |>
 
 What is the distribution of effort over the calendar year
 
-```{r timing1}
+```{r gftiming1}
 gf |> 
   dplyr::select(TRIPID,MONTH,InsideDAS) |> 
   dplyr::distinct() |> 
@@ -225,7 +225,7 @@ gf |>
 
 What is the distribution of landings over the calendar year
 
-```{r timing1}
+```{r gftiming2}
 gf |> 
   dplyr::filter(Code %in% speciesCodes) |> 
   dplyr::select(MONTH,InsideLANDED) |> 
@@ -607,7 +607,7 @@ for (aport in port3) {
 ```
 ## Landings by box (Time series)
 
-```{r landingsboxtime, echo =F}
+```{r gflandingsboxtime, echo =F}
 
 landBox<- landingsByBox |> 
   dplyr::filter(newport %in% port3) |> 

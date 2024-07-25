@@ -58,10 +58,19 @@
     <loc>/reference/compare_data.html</loc>
   </url>
   <url>
+    <loc>/reference/create_atlantis_groundfish_data.html</loc>
+  </url>
+  <url>
+    <loc>/reference/create_atlantis_scallop_data.html</loc>
+  </url>
+  <url>
     <loc>/reference/create_dataset.html</loc>
   </url>
   <url>
     <loc>/reference/get_effort.html</loc>
+  </url>
+  <url>
+    <loc>/reference/get_effort_landings.html</loc>
   </url>
   <url>
     <loc>/reference/get_port_lat_lon.html</loc>

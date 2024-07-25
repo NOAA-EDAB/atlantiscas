@@ -213,6 +213,42 @@ multispecies (Groundfish) FMP</a> comprises the following species:</p>
 <p><img src="groundfishNEFleet_files/figure-html/plotland4-1.png" width="700"></p>
 </div>
 <div class="section level2">
+<h2 id="timing-of-landings">Timing of Landings<a class="anchor" aria-label="anchor" href="#timing-of-landings"></a>
+</h2>
+<p>What is the distribution of effort over the calendar year</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gf</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">TRIPID</span>,<span class="va">MONTH</span>,<span class="va">InsideDAS</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/distinct.html" class="external-link">distinct</a></span><span class="op">(</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>MONTH <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">MONTH</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">MONTH</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>effort <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">InsideDAS</span><span class="op">)</span>,</span>
+<span>                   .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">MONTH</span>,y<span class="op">=</span><span class="va">effort</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Days at Sea"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">Year</span><span class="op">)</span>,collapse<span class="op">=</span><span class="st">"-"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="groundfishNEFleet_files/figure-html/gftiming1-1.png" width="700"></p>
+</div>
+<div class="section level2">
+<h2 id="magnitude-of-landings">Magnitude of Landings<a class="anchor" aria-label="anchor" href="#magnitude-of-landings"></a>
+</h2>
+<p>What is the distribution of landings over the calendar year</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">gf</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Code</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="va">speciesCodes</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">MONTH</span>,<span class="va">InsideLANDED</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>MONTH <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">as.factor</a></span><span class="op">(</span><span class="va">MONTH</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">MONTH</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>landings <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">InsideLANDED</span><span class="op">)</span>,</span>
+<span>                   .groups <span class="op">=</span> <span class="st">"drop"</span><span class="op">)</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span><span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_bar.html" class="external-link">geom_col</a></span><span class="op">(</span><span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x<span class="op">=</span><span class="va">MONTH</span>,y<span class="op">=</span><span class="va">landings</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Metric Tons"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/range.html" class="external-link">range</a></span><span class="op">(</span><span class="va">gf</span><span class="op">$</span><span class="va">Year</span><span class="op">)</span>,collapse<span class="op">=</span><span class="st">"-"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="groundfishNEFleet_files/figure-html/gftiming2-1.png" width="700"></p>
+</div>
+<div class="section level2">
 <h2 id="landings-by-atlantis-box">Landings by Atlantis Box<a class="anchor" aria-label="anchor" href="#landings-by-atlantis-box"></a>
 </h2>
 <p>compared to model output from v2.2.0</p>
@@ -323,10 +359,15 @@ of the trip.</p>
 <p>After aggregating the top ports based on the decisions found in this
 section {#sel} and combining all remaining ports into an “other fleet”
 we can look at the total effort by fleet in units: days at sea</p>
+<pre><code><span><span class="co">#&gt; Calculating trip effort for main ports</span></span>
+<span><span class="co">#&gt; calculating landings for main ports</span></span>
+<span><span class="co">#&gt; calculating effort for other ports</span></span>
+<span><span class="co">#&gt; calculating landings for other ports</span></span>
+<span><span class="co">#&gt; combining all data</span></span></code></pre>
 <p><img src="groundfishNEFleet_files/figure-html/effort1-1.png" width="700"></p>
 </div>
 <div class="section level2">
-<h2 id="effort-by-box">Effort by box<a class="anchor" aria-label="anchor" href="#effort-by-box"></a>
+<h2 id="effort-by-box-time-series">Effort by box (Time series)<a class="anchor" aria-label="anchor" href="#effort-by-box-time-series"></a>
 </h2>
 <p>Partition effort by box.</p>
 <p>Note: In atlantis effort is entered as as daily effort (days of
@@ -335,7 +376,11 @@ Her we show the effort by box for the top 3 ports (by landings)</p>
 <p><img src="groundfishNEFleet_files/figure-html/effort2-1.png" width="700"><img src="groundfishNEFleet_files/figure-html/effort2-2.png" width="700"></p>
 <pre><code><span><span class="co">#&gt; `geom_line()`: Each group consists of only one observation.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Do you need to adjust the <span style="color: #00BB00;">group</span> aesthetic?</span></span></code></pre>
-<p><img src="groundfishNEFleet_files/figure-html/effort2-3.png" width="700"></p>
+<p><img src="groundfishNEFleet_files/figure-html/effort2-3.png" width="700">
+## Landings by box (Time series)</p>
+<pre><code><span><span class="co">#&gt; `summarise()` has grouped output by 'Year', 'Box'. You can override using the</span></span>
+<span><span class="co">#&gt; `.groups` argument.</span></span></code></pre>
+<p><img src="groundfishNEFleet_files/figure-html/gflandingsboxtime-1.png" width="700"><img src="groundfishNEFleet_files/figure-html/gflandingsboxtime-2.png" width="700"><img src="groundfishNEFleet_files/figure-html/gflandingsboxtime-3.png" width="700"></p>
 </div>
   </div>
 
