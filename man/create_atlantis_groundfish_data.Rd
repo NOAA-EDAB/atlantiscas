@@ -10,5 +10,6 @@ create_atlantis_groundfish_data()
 data frames
 }
 \description{
-Reads in groundfish data and returns effort and landings by box for main ports
+Reads in groundfish data and returns effort and landings by box for main ports.
+input data obtained from create_vignete_dataset
 }

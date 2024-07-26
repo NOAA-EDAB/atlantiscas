@@ -11,7 +11,7 @@
 #'
 #' @export
 
-create_dataset <- function(fleetType) {
+create_vignette_dataset <- function(fleetType) {
 
   cleanData <- readRDS(here::here("data-raw/fishing/processedData.rds"))
 
