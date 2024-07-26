@@ -7,6 +7,7 @@
 
 create_atlantis_scallop_data <- function() {
 
+  message("Reading in vignette data")
   lbstotons <- 2204.62
   scallopData <- readRDS(here::here("data/scallopDataCAMS.rds"))
 

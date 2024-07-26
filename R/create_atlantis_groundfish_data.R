@@ -1,12 +1,14 @@
 #' get processed groundfish data for atlantis use
 #'
-#' Reads in groundfish data and returns effort and landings by box for main ports
+#' Reads in groundfish data and returns effort and landings by box for main ports.
+#' input data obtained from create_vignete_dataset
 #'
 #' @return data frames
 #' @export
 
 create_atlantis_groundfish_data <- function() {
 
+  message("Reading in vignette data")
   lbstotons <- 2204.62
   gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds"))
 
@@ -22,7 +24,7 @@ create_atlantis_groundfish_data <- function() {
 
   speciesCodes <- c("COD","HAD","YTF","POL","PLA","WTF","WHK","WIF","RED","HAL","WPF","OPT","WOL")
 
-  effortByBox <- get_effort_landings(sca,ports,associatedPorts,speciesCodes)
+  effortByBox <- get_effort_landings(gf,ports,associatedPorts,speciesCodes)
 
 
   return(effortByBox)
