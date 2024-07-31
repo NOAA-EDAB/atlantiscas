@@ -20,19 +20,9 @@ library(ncdf4)
 library(sf)
 ```
 
-## Atlantis parameterization
-(Codebase v6681)
+## Gears
 
-1. Forced effort time series (days $day^{-1}$) - effortmodel = 11 (Running into segmentation error issues)
-
-2. YYY_effort > 0 (Fixed total effort, days $day^{-1}$)
-
-
-## Trial for Atlantis conversion
-
-First look at the data to see how many gear types, and which ports landed the scallops.
-
-The fishing data were processed and passed through minimal QA/QC. All ports were assigned lat and lons (as best as possible), all landings were assigned to an atlantis group.
+The fishing data were processed and passed through minimal [QA/QC](articles/dataQAQC). All ports were assigned lat and lons (as best as possible), all landings were assigned to an atlantis group.
 
 SCA is the atlantis group for scallops.
 
@@ -323,7 +313,18 @@ Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 ```{r plotland7, echo =F}
 
 	
-portids <- unique(c(mainPortsIDs,associatedPorts$associated))
+unorderedportids <- unique(c(mainPortsIDs,associatedPorts$associated))
+
+#  order ports
+portids <- NULL
+for (iport in mainPortsIDs) {
+  portids <- c(portids,iport)
+  subports <- associatedPorts |>  
+    dplyr::filter(main == iport) |> 
+    dplyr::pull(associated)
+  portids <- c(portids,subports)    
+}
+
 
 ports <- sca |> 
   dplyr::group_by(newport,STATEABB,PORTID,lat,lon) |> 

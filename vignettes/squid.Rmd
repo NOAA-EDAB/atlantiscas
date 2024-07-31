@@ -23,18 +23,27 @@ library(sf)
 
 Squid pose a data problem since they are caught primarily with the same gear as the [NE groundfish](articles/groundfishNEFleet). A method is required to identify squid trips and to separate these trips from the groundfish trips. Failure to do so will potentially skew the footprint and the effort for the NE groundfish fleet.
 
+Some squid fishers (Bigger boats) will travel anywhere to catch squid. The limiting factor is gas prices. And depending on the permits they hold they can change the gear and fish other species. Smaller boats catching squid can not travel anywhere and are limited to smaller region.
+
 Difference between groundfish and squid fishers
 
-* squid fishers use a smaller mesh net
+* squid fishers use a smaller mesh net but the mesh size field in the database is often missing so it is unreliable as a source for filtering the data.
+
+Stock assessment determine a squid trip (after consulting industry) using these rules of thumb:
+
+* 10,000 lbs of shortfin (Illex) (ISQ)
+* 2,500 lbs of longfin (LSQ)
+
+This has not yet been implemented
 
 ```{r squiddata, echo = F}
 # CONVERT TO METRIC TONS
 lbstotons <- 2204.62
 boundaryBoxes <- c(0,23:29)
 fishingData <- read_data()$data |> 
-  dplyr::mutate(InsideLANDED/lbstotons) |> 
+  dplyr::mutate(InsideLANDED = InsideLANDED/lbstotons) |> 
+  # dplyr::filter(squidTrip == T)
   dplyr::filter(GEARCAT != "Scallop Gear")
-
 # sum landings by trip, gear, atlantis code
 lan <- fishingData |>
   dplyr::group_by(TRIPID,GEARCAT,Code) |>
@@ -49,6 +58,64 @@ tripids <- lan |>
 
 
 ```
+
+## Gear types
+
+```{r squidgears, echo = F}
+fishingData |>
+  dplyr::group_by(GEARCAT)|> 
+  dplyr::summarise(landings=sum(InsideLANDED)) |>
+  dplyr::arrange(desc(landings)) |> 
+  DT::datatable()
+```
+
+
+<!-- ## Trips over squid landings threshold -->
+
+<!-- ```{r squidpthresh, echo = F} -->
+
+<!-- tripsNew <- fishingData |> -->
+<!--   dplyr::filter((Code == "ISQ" & InsideLANDED > 10000/lbstotons) | (Code == "LSQ" & InsideLANDED > 2500/lbstotons)) |>  -->
+<!--   dplyr::distinct(TRIPID) |>  -->
+<!--   dplyr::pull() -->
+
+<!-- lan2 <- fishingData |> -->
+<!--   dplyr::filter(TRIPID %in% tripsNew) |>  -->
+<!--   dplyr::group_by(TRIPID,GEARCAT,Code) |> -->
+<!--   dplyr::summarise(land= sum(InsideLANDED), -->
+<!--                    .groups="drop") -->
+
+<!-- ``` -->
+<!-- ## How much squid landed in each trip? -->
+
+<!-- ```{r squidpcent, echo = F} -->
+
+
+<!-- landings <- lan2 |> -->
+<!--   dplyr::mutate(squid = dplyr::case_when(Code %in% c("ISQ","LSQ") ~ land, -->
+<!--                                          .default = NA)) -->
+<!-- squidTot <- landings |> -->
+<!--   dplyr::group_by(TRIPID,GEARCAT) |> -->
+<!--   dplyr::summarise(tot = sum(land), -->
+<!--                    .groups = "drop") -->
+
+<!-- squidLand <- landings |> -->
+<!--   dplyr::filter(Code %in% c("LSQ","ISQ")) |> -->
+<!--   dplyr::group_by(TRIPID,GEARCAT) |> -->
+<!--   dplyr::summarise(squid= sum(squid), -->
+<!--                    .groups = "drop") -->
+
+<!-- squidTripLand <- squidLand |> -->
+<!--   dplyr::left_join(squidTot, by = c("TRIPID","GEARCAT")) |> -->
+<!--   dplyr::mutate(pcent = squid/tot) -->
+
+<!-- pcent <- squidTripLand |> -->
+<!--   dplyr::pull(pcent) -->
+
+<!-- a <- hist(pcent, main="Proportion of landings that are squid", -->
+<!--      xlab = "Proportion",ylab = "Number of Trips") -->
+
+<!-- ``` -->
 
 ## How much squid landed in each trip?
 

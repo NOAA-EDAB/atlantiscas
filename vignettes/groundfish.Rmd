@@ -8,8 +8,7 @@ vignette: >
 ---
 
 
-
-```{r setup, warning=FALSE, echo = F}
+```{r setup, warning=FALSE, echo = F, message=F,warning=F}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -107,12 +106,14 @@ landings <- gf |>
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
 
-landings |> 
+p <- landings |> 
   ggplot2::ggplot() + 
   ggplot2::geom_line(ggplot2::aes(x=Year,y=landed,color=GEARCAT)) +
   ggplot2::facet_wrap(~facetLabel)+
   ggplot2::ylab("Metric Tons") +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+
+suppressMessages(print(p))
 
 ```
 
@@ -125,12 +126,14 @@ landings <- gf |>
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
 
-landings |> 
+p <- landings |> 
   ggplot2::ggplot() + 
   ggplot2::geom_line(ggplot2::aes(x=Year,y=landed, color = GEARCAT)) +
-  ggplot2::facet_wrap(~Code) 
+  ggplot2::facet_wrap(~Code) +
   ggplot2::ylab("Metric Tons")  +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+  
+suppressMessages(print(p))
   
 ```
 
@@ -159,12 +162,14 @@ landings <- gf |>
   dplyr::summarise(landed = sum(InsideLANDED),
                    .groups = "drop")
                      
-landings |> 
+p <- landings |> 
   ggplot2::ggplot() + 
   ggplot2::geom_line(ggplot2::aes(x=Year,y=landed,color=GEARCAT)) +
   ggplot2::facet_wrap(~STATEABB) +
   ggplot2::ylab("Metric Tons") +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+
+suppressMessages(print(p))
 
 ```
 
@@ -186,7 +191,7 @@ ports10 <- landings |>
   dplyr::pull(newport)
 
 
-landings |> 
+p <- landings |> 
   dplyr::filter(newport %in% ports10) |> 
   dplyr::group_by(Year,newport,GEARCAT) |> 
   dplyr::summarise(landed = sum(landed),
@@ -197,6 +202,8 @@ landings |>
   ggplot2::ylab("Metric Tons") +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
 
+suppressMessages(print(p))
+
 ```
 
 
@@ -204,7 +211,7 @@ landings |>
 
 What is the distribution of effort over the calendar year
 
-```{r gftiming1}
+```{r gftiming1, echo = F}
 gf |> 
   dplyr::select(TRIPID,MONTH,InsideDAS) |> 
   dplyr::distinct() |> 
@@ -225,7 +232,7 @@ gf |>
 
 What is the distribution of landings over the calendar year
 
-```{r gftiming2}
+```{r gftiming2, echo =F}
 gf |> 
   dplyr::filter(Code %in% speciesCodes) |> 
   dplyr::select(MONTH,InsideLANDED) |> 
@@ -321,12 +328,14 @@ landings <- dataBox |>
   dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |> 
   dplyr::filter(prop <= 0.95)
 
-NEFSCspatial::Neus_atlantis |> 
+p <- NEFSCspatial::Neus_atlantis |> 
   dplyr::left_join(landings,by = c("BOX_ID"="Box"))  |> 
   ggplot2::ggplot() +
   ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
   ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
                         position = ggplot2::position_dodge(width=0.9),  size=3) 
+
+suppressWarnings(print(p))
 
 ```
 
@@ -412,6 +421,18 @@ Landings are displayed for the Boxes which cumulatively make up `r 100*threshold
 
 # pick out 3 busiest ports based on landings
 ports <- unique(c(mainPortsIDs,associatedPorts$associated))
+
+#  order ports
+portids <- NULL
+for (iport in mainPortsIDs) {
+  portids <- c(portids,iport)
+  subports <- associatedPorts |>  
+    dplyr::filter(main == iport) |> 
+    dplyr::pull(associated)
+  portids <- c(portids,subports)    
+}
+
+
 portData <- gf |> 
   dplyr::filter(PORTID %in% ports) |> 
   dplyr::distinct(PORTID,newport,STATEABB,lat,lon) |> 
@@ -436,7 +457,8 @@ maxBoxLandings <- landings |>
   max()
 
 # create map for each
-for (iport in portData$PORTID) {
+#for (iport in portData$PORTID) {
+for (iport in portids) {
   
   portName <- portData |> 
     dplyr::filter(PORTID == iport) |> 
@@ -601,7 +623,7 @@ for (aport in port3) {
     ggplot2::ggtitle(aport) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
   
-  print(p)
+  suppressMessages(print(p))
 }
 
 ```
@@ -613,7 +635,7 @@ landBox<- landingsByBox |>
   dplyr::filter(newport %in% port3) |> 
   dplyr::group_by(Year,Box,newport) |> 
   dplyr::summarise(landings = sum(landings),
-                   .group="drop")
+                   .groups="drop")
 
 for (aport in port3) {
   p <- ggplot2::ggplot(landBox |> dplyr::filter(newport == aport)) +

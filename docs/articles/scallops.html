@@ -63,6 +63,9 @@
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
+      <a href="../articles/atlantisFleets.html">Atlantis requirements</a>
+    </li>
+    <li>
       <a href="../articles/dataQAQC.html">Data QA/QC</a>
     </li>
     <li>
@@ -75,7 +78,7 @@
       <a href="../articles/scallops.html">Sea Scallops</a>
     </li>
     <li>
-      <a href="../articles/groundfishNEFleet.html">NE Groundfish</a>
+      <a href="../articles/groundfish.html">NE Groundfish</a>
     </li>
     <li>
       <a href="../articles/squid.html">Squid</a>
@@ -144,23 +147,11 @@
     
 <pre><code><span><span class="co">## Linking to GEOS 3.9.3, GDAL 3.5.2, PROJ 8.2.1; sf_use_s2() is TRUE</span></span></code></pre>
 <div class="section level2">
-<h2 id="atlantis-parameterization">Atlantis parameterization<a class="anchor" aria-label="anchor" href="#atlantis-parameterization"></a>
+<h2 id="gears">Gears<a class="anchor" aria-label="anchor" href="#gears"></a>
 </h2>
-<p>(Codebase v6681)</p>
-<ol style="list-style-type: decimal">
-<li><p>Forced effort time series (days <span class="math inline">\(day^{-1}\)</span>) - effortmodel = 11 (Running
-into segmentation error issues)</p></li>
-<li><p>YYY_effort &gt; 0 (Fixed total effort, days <span class="math inline">\(day^{-1}\)</span>)</p></li>
-</ol>
-</div>
-<div class="section level2">
-<h2 id="trial-for-atlantis-conversion">Trial for Atlantis conversion<a class="anchor" aria-label="anchor" href="#trial-for-atlantis-conversion"></a>
-</h2>
-<p>First look at the data to see how many gear types, and which ports
-landed the scallops.</p>
-<p>The fishing data were processed and passed through minimal QA/QC. All
-ports were assigned lat and lons (as best as possible), all landings
-were assigned to an atlantis group.</p>
+<p>The fishing data were processed and passed through minimal <a href="articles/dataQAQC">QA/QC</a>. All ports were assigned lat and lons
+(as best as possible), all landings were assigned to an atlantis
+group.</p>
 <p>SCA is the atlantis group for scallops.</p>
 <p>Gear Categories identified, in the data set, as scallop vessels
 were</p>

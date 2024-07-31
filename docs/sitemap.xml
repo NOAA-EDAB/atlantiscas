@@ -10,10 +10,16 @@
     <loc>/articles/atlantisFishing.html</loc>
   </url>
   <url>
+    <loc>/articles/atlantisFleets.html</loc>
+  </url>
+  <url>
     <loc>/articles/dataQAQC.html</loc>
   </url>
   <url>
     <loc>/articles/ExploreFishingData.html</loc>
+  </url>
+  <url>
+    <loc>/articles/groundfish.html</loc>
   </url>
   <url>
     <loc>/articles/groundfishNEFleet.html</loc>
@@ -32,6 +38,9 @@
   </url>
   <url>
     <loc>/articles/SSBData.html</loc>
+  </url>
+  <url>
+    <loc>/articles/test.html</loc>
   </url>
   <url>
     <loc>/authors.html</loc>
@@ -64,16 +73,10 @@
     <loc>/reference/create_atlantis_scallop_data.html</loc>
   </url>
   <url>
-    <loc>/reference/create_dataset.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_effort.html</loc>
+    <loc>/reference/create_vignette_dataset.html</loc>
   </url>
   <url>
     <loc>/reference/get_effort_landings.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_port_lat_lon.html</loc>
   </url>
   <url>
     <loc>/reference/index.html</loc>
@@ -83,9 +86,6 @@
   </url>
   <url>
     <loc>/reference/plot_nafo.html</loc>
-  </url>
-  <url>
-    <loc>/reference/plot_ports.html</loc>
   </url>
   <url>
     <loc>/reference/process_data.html</loc>

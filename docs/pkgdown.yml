@@ -4,12 +4,14 @@ pkgdown_sha: ~
 articles:
   atlantiscas: atlantiscas.html
   atlantisFishing: atlantisFishing.html
+  atlantisFleets: atlantisFleets.html
   dataQAQC: dataQAQC.html
   ExploreFishingData: ExploreFishingData.html
-  groundfishNEFleet: groundfishNEFleet.html
+  groundfish: groundfish.html
   ports: ports.html
   scallops: scallops.html
   squid: squid.html
   SSBData: SSBData.html
-last_built: 2024-07-25T14:01Z
+  test: test.html
+last_built: 2024-07-30T12:58Z
 

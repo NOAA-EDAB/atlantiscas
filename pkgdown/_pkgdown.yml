@@ -23,6 +23,8 @@ navbar:
     articles:
       text: Notebook
       menu:
+      - text: Atlantis requirements
+        href: articles/atlantisFleets.html
       - text: Data QA/QC
         href: articles/dataQAQC.html
       - text: Data Exploration
@@ -32,7 +34,7 @@ navbar:
       - text: Sea Scallops
         href: articles/scallops.html
       - text: NE Groundfish
-        href: articles/groundfishNEFleet.html
+        href: articles/groundfish.html
       - text: Squid
         href: articles/squid.html
     slides:
