@@ -7,7 +7,6 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-
 ```{r setup, warning=FALSE, echo = F, message=F,warning=F}
 knitr::opts_chunk$set(
   collapse = TRUE,
@@ -19,42 +18,39 @@ library(ncdf4)
 library(sf)
 ```
 
-
 ## Species
 
 The [NE multispecies (Groundfish) FMP](https://www.nefmc.org/management-plans/northeast-multispecies) comprises the following species:
 
-* Atlantic Cod (COD)
-* Haddock (HAD)
-* Yellowtail Flounder (YTF)
-* Pollock (POL)
-* American Plaice (PLA)
-* Witch Flounder (WTF)
-* White Hake (WHK)
-* Winter Flounder (WIF)
-* Redfish (RED)
-* Atlantic Halibut (HAL)
+-   Atlantic Cod (COD)
+-   Haddock (HAD)
+-   Yellowtail Flounder (YTF)
+-   Pollock (POL)
+-   American Plaice (PLA)
+-   Witch Flounder (WTF)
+-   White Hake (WHK)
+-   Winter Flounder (WIF)
+-   Redfish (RED)
+-   Atlantic Halibut (HAL)
 
 Non target species
 
-* Windowpane flounder (WPF)
-* Ocean Pout (OPT)
-* Atlantic Wolffish (WOL)
+-   Windowpane flounder (WPF)
+-   Ocean Pout (OPT)
+-   Atlantic Wolffish (WOL)
 
 These GEARCAT(s) associated with groundfish species are:
 
-* Bottom Trawl
-* Sink Gillnet
+-   Bottom Trawl
+-   Sink Gillnet
 
-
-
-** Still need to separate some species (sharks) **
-
+\*\* Still need to separate some species (sharks) \*\*
 
 ```{r groundfishdata, echo = F}
 # CONVERT TO METRIC TONS
 lbstotons <- 2204.62
 boundaryBoxes <- c(0,23:29)
+threshold1 <- .99 # threshold for filtering data for plots
 gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds")) 
 gf <- gfData$neus |> 
   dplyr::mutate(Year = as.integer(Year)) |> 
@@ -139,7 +135,6 @@ suppressMessages(print(p))
 
 ## Landings of groundfish by species
 
-
 ```{r plotland2, echo =F}
 
 gf |> 
@@ -152,6 +147,55 @@ gf |>
           ))
 ```
 
+## Landings of groundfish by box
+
+Spatial maps show Boxes that comprise `r threshold1*100`% of landings for each species. Typically species are caught in all boxes.
+
+```{r landspecies, echo = F, eval = T}
+
+landings <- gf |> 
+  dplyr::select(Year,Code,Species,Area,InsideLANDED) |> 
+  dplyr::filter(Code %in% speciesCodes) |>  
+  tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |> 
+  dplyr::mutate(Box = as.numeric(Box))
+
+# create map for each
+#for (iport in portData$PORTID) {
+for (aspecies in speciesCodes) {
+  
+  boxLandings <- landings |> 
+    dplyr::filter(Code == aspecies) |> 
+    (\(.) {. ->> sp})() |> 
+    dplyr::group_by(Box) |>   
+    dplyr::summarise(landed = sum(InsideLANDED),
+                     .groups="drop")
+    
+  Species  <-  sp |> 
+    dplyr::pull(Species) |> 
+    unique()
+  
+    # create landings by box (summed over time)
+  boxLandings <- boxLandings |>
+    dplyr::arrange(desc(landed)) |>
+    dplyr::mutate(cumsum = cumsum(landed), prop = cumsum/sum(landed)) |>
+    dplyr::filter(prop <= threshold1)
+
+  # select boxes which account fo 95% of landings
+  p <- NEFSCspatial::Neus_atlantis |>
+    dplyr::left_join(boxLandings,by = c("BOX_ID"="Box"))  |>
+    ggplot2::ggplot() +
+    ggplot2::geom_sf(ggplot2::aes(fill = landed)) +
+    #ggplot2::scale_fill_continuous(limits=c(0, maxBoxLandings))+
+    ggplot2::geom_sf_text(ggplot2::aes(label = BOX_ID),
+                          size=3) +
+    ggplot2::ggtitle(paste0(Species," - (",aspecies,")")) +
+    ggplot2::coord_sf(xlim = c(-80,-62)) 
+  
+  suppressWarnings(print(p))
+}
+
+
+```
 
 ## Landings of Groundfish by state
 
@@ -206,7 +250,6 @@ suppressMessages(print(p))
 
 ```
 
-
 ## Timing of Landings
 
 What is the distribution of effort over the calendar year
@@ -249,13 +292,8 @@ gf |>
 
 ```
 
-
-
-
-
-
-
 ## Landings by Atlantis Box
+
 compared to model output from v2.2.0
 
 ```{r plotland5, echo=F}
@@ -341,13 +379,12 @@ suppressWarnings(print(p))
 
 Boxes that contribute 95% of landings `r landings |> dplyr::pull(Box) |> sort()`
 
-
-
 ## Ports Landings and revenue
 
 Order the ports by NE groundfish landings and revenue.
 
 ### Landings
+
 ```{r ports1land, echo =F}
 ports <- gf |> 
   dplyr::filter(Code %in% speciesCodes) |> 
@@ -366,8 +403,7 @@ ports
 
 ### Revenue
 
-Note there are `r gf |> dplyr::filter(is.na(InsideREV)) |> nrow()` records where revenue is NA.
-Revenue has been deflated to xxxx using the GDP Implicit Price Deflator
+Note there are `r gf |> dplyr::filter(is.na(InsideREV)) |> nrow()` records where revenue is NA. Revenue has been deflated to xxxx using the GDP Implicit Price Deflator
 
 ```{r ports1rev, echo =F}
 portsrev <- gf |> 
@@ -384,34 +420,33 @@ portsrev <- gf |>
 portsrev
 
 ```
+
 ## Select the main ports {#sel}
 
 The top ports ordered by landings or revenue are in relative agreement. The following ports are selected as the main ports to parameterize in the Atlantis model.
 
-* MAINE
-  * PORTLAND (220101)
-* NEWHAMPSHIRE
-  * PORTSMOUTH (SEABROOK) (320201, 320901)
-* MASSACHUSETTS
-  * GLOUCESTER (240207)
-  * BOSTON (SCITUATE) (240115, 240813)
-  * CHATHAM (PROVINCETOWN) (240301, 240601)
-  * NEW BEDFORD (240403)
-* RHODE ISLAND
-  * POINT JUDITH (420209)
-* CONNECTICUT
-  * none
-* NEW YORK
-  * MONTAUK (350635)
-  
-** Note: MONTAUK, NY added for historic reason (although it was in the top 20 ports)**
+-   MAINE
+    -   PORTLAND (220101)
+-   NEWHAMPSHIRE
+    -   PORTSMOUTH (SEABROOK) (320201, 320901)
+-   MASSACHUSETTS
+    -   GLOUCESTER (240207)
+    -   BOSTON (SCITUATE) (240115, 240813)
+    -   CHATHAM (PROVINCETOWN) (240301, 240601)
+    -   NEW BEDFORD (240403)
+-   RHODE ISLAND
+    -   POINT JUDITH (420209)
+-   CONNECTICUT
+    -   none
+-   NEW YORK
+    -   MONTAUK (350635)
+
+\*\* Note: MONTAUK, NY added for historic reason (although it was in the top 20 ports)\*\*
 
 ```{r mainports, echo = F}
 mainPortsIDs = c(240403,240207,220101,240115,420209,240301,320201,350635)
 associatedPorts = data.frame(main=c(320201,240115,240301),associated=c(320901,240813,240601))
-threshold1 <- .99
 ```
-
 
 ## Landings (data) by box spatially for main ports
 
@@ -509,10 +544,9 @@ for (iport in portids) {
 
 ```
 
-
 ## Aggregate remaining data as "other" fleet
 
-The remaining ports (other than the ports listed above) make up ~10% of total landings. All trips associated with these ports will be combined to form one fleet which will fish in the footprint below. This maintains the communities at sea idea for the main ports but takes into account all remaining landings to satisfy model requirements
+The remaining ports (other than the ports listed above) make up \~10% of total landings. All trips associated with these ports will be combined to form one fleet which will fish in the footprint below. This maintains the communities at sea idea for the main ports but takes into account all remaining landings to satisfy model requirements
 
 ```{r otherfleet,echo = F}
 ports <- unique(c(mainPortsIDs,associatedPorts$associated))
@@ -555,7 +589,6 @@ Total Landings over `r paste(timerange,collapse="-")` = `r round(otherFleetLandi
 
 Time series of landings by box of other fleet
 
-
 ```{r otherfleettime, echo = F}
 
 otherFleetBoundary <- 
@@ -574,10 +607,9 @@ otherFleetBoundary |>
 
 ## Effort
 
-The effort variable is Days at sea (DAS) and is a crude metric. Only integer values and rounded up to the nearest whole day. It is the length of the trip. 
+The effort variable is Days at sea (DAS) and is a crude metric. Only integer values and rounded up to the nearest whole day. It is the length of the trip.
 
 After aggregating the top ports based on the decisions found in this section {#sel} and combining all remaining ports into an "other fleet" we can look at the total effort by fleet in units: days at sea
-
 
 ```{r effort1, echo =F}
 
@@ -627,6 +659,7 @@ for (aport in port3) {
 }
 
 ```
+
 ## Landings by box (Time series)
 
 ```{r gflandingsboxtime, echo =F}
@@ -650,4 +683,3 @@ for (aport in port3) {
 }
 
 ```
-
