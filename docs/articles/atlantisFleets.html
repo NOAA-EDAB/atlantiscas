@@ -140,14 +140,20 @@
 
     
     
-<p>Using code base: v6681</p>
+<p>Using Atlantis code base: v6681</p>
+<p>Several options to parameterize fleet effort:</p>
 <ol style="list-style-type: decimal">
 <li><p>Forced effort time series (days <span class="math inline">\(day^{-1}\)</span>) by box - effortmodel =
 11</p></li>
-<li><p>YYY_effort &gt; 0 (Fixed total effort, days <span class="math inline">\(day^{-1}\)</span>)</p></li>
+<li><p>Forced effort time series system wide (Global). Similar to forced
+catch. Development on new <a href="https://github.com/NEFSC/READ-EDAB-neusAtlantis/issues/246" class="external-link">branch</a></p></li>
+<li><p>Specify fleet total effort (scalar) that is fixed over the run.
+YYY_effort &gt; 0 (days <span class="math inline">\(day^{-1}\)</span>)</p></li>
 </ol>
+<p>We will implement box level forced time series effort by fleet
+(option 1)</p>
 <div class="section level2">
-<h2 id="data-required">Data required<a class="anchor" aria-label="anchor" href="#data-required"></a>
+<h2 id="data-requirements">Data requirements<a class="anchor" aria-label="anchor" href="#data-requirements"></a>
 </h2>
 <p>CAMS data was pulled, QAQC’d, then processed to clean the raw
 data.</p>
@@ -166,7 +172,7 @@ total landings and/or ~90% of revenue. All other ports were aggregated
 to a single “other port”</li>
 </ul>
 </li>
-<li>Identify the spatial footprint for each fleet (mapped to atlanitis
+<li>Identify the spatial footprint for each fleet (mapped to atlantis
 footprint)</li>
 <li>The timing of when the landings occur (the distribution of when
 trips take place over the year)</li>
@@ -175,6 +181,346 @@ trips take place over the year)</li>
 </ul>
 <p>To force by box level effort we need to define fleets along the
 northern part of the eastern seaboard.</p>
+<p>We will focus primarily on:</p>
+<ol style="list-style-type: decimal">
+<li>Scallop fleets (non age structured in Atlantis and some what of a
+clean fishery with little bycatch)</li>
+<li>
+<a href="https://www.nefmc.org/management-plans/northeast-multispecies" class="external-link">NE
+Groundfish</a> fleets (age structured species fun in the FMP)</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="parameterization-of-the-model">Parameterization of the model<a class="anchor" aria-label="anchor" href="#parameterization-of-the-model"></a>
+</h2>
+</div>
+<div class="section level2">
+<h2 id="forced-effort">Forced effort<a class="anchor" aria-label="anchor" href="#forced-effort"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>How to integrate the two forcing file data (effort and catch)? Can
+you force catch for some species, and force effort for others? Yes</li>
+</ol>
+<ul>
+<li>Define the set of species being targeted by a fleet</li>
+<li>Keep forced catch in catch.ts file for these species up to time when
+forced effort is being implemented, then zero forced catch after this
+time. In our case forced effort begins in 1996</li>
+<li>In the effort.ts files zero out effort until 1996 for fleets
+targeting these species</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Box specific forcing of effort by fleet. Requires 30 ts files all
+formatted similarly. Also need to include metadata in the
+<code>forcing.prm</code> file
+<ul>
+<li>R Scripts made to create and manipulate these files</li>
+</ul>
+</li>
+<li>Alternatively use constant effort through time with seasonal scalars
+(<code>Effort_hdistribYYYd</code>, no forcing, effortmodel = 9). This is
+limiting and prevents looking at scenarios with changes in effort
+through time based on management decision or climate changes</li>
+</ol>
+</div>
+<div class="section level2">
+<h2 id="harvest-equation-in-atlantis-terms">Harvest equation (in atlantis terms)<a class="anchor" aria-label="anchor" href="#harvest-equation-in-atlantis-terms"></a>
+</h2>
+<p>Harvest = Effort * YYY_sweptarea * f(selcurve_YYY,sel_XXX) *
+management_scalar * (vertical overlap * positional availability) *
+g(habitat overlap, q_XXX) * Biomass (1-p(escapement) )</p>
+<p>where</p>
+<p>escapement = h(flagesacpement_XXX, p_escape_XXX ,ka_escape_XXX
+,kb_escape_XXX)</p>
+<p>Effort is a forced box level time series we supply
+(<code>effortmodel=11</code>) or or Effort is fixed (effortmodel = 9)
+where catch is proportional to population density (biomass)</p>
+</div>
+<div class="section level2">
+<h2 id="parameters-of-importance">Parameters of importance<a class="anchor" aria-label="anchor" href="#parameters-of-importance"></a>
+</h2>
+<div class="section level3">
+<h3 id="effort">Effort<a class="anchor" aria-label="anchor" href="#effort"></a>
+</h3>
+<ul>
+<li>
+<code>YYY_effortmodel</code> (at_harvest.prm)
+<ul>
+<li>Determines the type of effort model used. Set fleet YYY with forced
+effort to value 11</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="catch">Catch<a class="anchor" aria-label="anchor" href="#catch"></a>
+</h3>
+<ul>
+<li>
+<p><code>flagimposecatch_XXX</code>(at_harvest.prm)</p>
+<ul>
+<li>Vector of length = #fisheries in fisheries.csv. A value of 1 implies
+that a fishery imposes forced catch via catch.ts on species XXX. For our
+case where we force catch over the beginning of the run. The first fleet
+(<code>catchall</code>) is a catch all fleet. This fleet has value 1 for
+all species. All other fleets are set to 0.</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>flagincidmort</code> (at_harvest.prm).</p>
+<ul>
+<li>Deals with bycatch. (Currently set value = 0, no bycatch). When
+turned on specify target species in <code>target_YYY</code>
+</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>target_YYY</code> (at_harvest.prm).</p>
+<ul>
+<li>A Boolean vector (length = #species) indicating which species are
+targeted by the fishery YYY. Value of 1 = species is targeted by fleet,
+0 = species is not targeted</li>
+<li>eg. for scallop fleets. Vector of 0’s for all non scallop fleets.
+For fleets targeting scallop, a value = 1 for SCA (62nd position in
+vector represents SCA)</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>flag_access_thru_wc_XXX</code> (at_harvest.prm)</p>
+<ul>
+<li>Whether a fishery has access to fish in the entire water column
+(e.g. do trawl doors remain open as the gear moves up/down through the
+water column there by interacting with species who do not live at the
+depth the trawl is most actively being towed). Currently set to 1</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>XXX_flagdempelfishery</code> (at_harvest.prm)</p>
+<ul>
+<li>Demersal fishery = 1, Pelagic fishery = 0. (Dynamic fishing).</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li>
+<code>flaghabitat_XXX</code> (at_harvest.prm)
+<ul>
+<li>Habitat scalar. Vector (length = # number of fleets). Vectors
+indicate which habitat patchiness equation to use when undertaking
+dynamic fishing. 0=standard % overlap, 1=Ellis and Pantus based subgrid
+scale model. All Values = 0. No additional scalar applied to
+<code>q_XXX</code>.</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li>
+<p><code>habitat_XXX</code> (at_biology.prm)</p>
+<ul>
+<li>Binary array (length = # habitats) for each species indicating if
+fishing is excluded from certain habitats. Each species is described by
+a vector of 11 (types of habitat) values. Habitat typs: SCA, QHG, CLA,
+BFF, MA, SG, MB, reef, flat, soft, canyon.</li>
+</ul>
+<p><br></p>
+<p><strong><em>Does a value of zero indicate fishing is excluded?
+Current model has text indicating which habitats each group prefers.
+Value of 1 = group lives on habitat. Need to sort this
+out</em></strong></p>
+</li>
+<li>
+<p><code>YYY_mindepth</code>,<code>YYY_maxdepth</code>
+(at_biology.prm)</p>
+<ul>
+<li>Min and max depth fishery operates.</li>
+</ul>
+<p><br></p>
+<p><strong><em>All mindepth values = 0 Maxdepth values most are 5000 or
+1900. Some 255,800,25,50,100,200. These are currently specified by
+species. Think they should be by fleet</em></strong></p>
+</li>
+<li>
+<p><code>YYY_sweptarea</code> (at_harvest.prm)</p>
+<ul>
+<li>The swept volume of water by gear of fishery YYY, m3 day-1. This is
+a volume, but called area to keep in line with the fisheries science
+usage. Starting value of 1E6 m3 = .001 km3 per day by the fishery.</li>
+</ul>
+<p>eg. If a ship trawled for 1km with a net opening of 10m x 10m it
+would sample = 1E5 m3 water = 10% of starting value.</p>
+</li>
+</ul>
+<p><br></p>
+<p><strong><em>Need to better understand the range of a tow to estimate
+if this value has any meaning</em></strong></p>
+<p>As a reference the average swept area for a standard tow in the
+bottom trawl survey = xxx?</p>
+</div>
+<div class="section level3">
+<h3 id="selectivity-catchability">Selectivity &amp; Catchability<a class="anchor" aria-label="anchor" href="#selectivity-catchability"></a>
+</h3>
+<ul>
+<li>
+<code>q_XXX</code>. (at_harvest.prm)
+<ul>
+<li>Catchability of species XXX by fleet. Vector of length = #fleets.
+Proportion of biomass (constant across all age groups). Since
+<code>flaghabitat_XXX</code> = 0 for all fleets this is a simple
+multiplier.</li>
+</ul>
+</li>
+</ul>
+<p><br></p>
+<ul>
+<li>
+<p><code>sel_XXX</code>. (at_harvest.prm)</p>
+<ul>
+<li>Proportion of of age group selected by the fishery. (Vector of
+length = #fleets)</li>
+<li>Scallops have 1 size class. Currently Set to 1 (Proportion
+selected)</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>YYY_selcurve</code>. (at_harvest.prm)</p>
+<ul>
+<li>Selectivity for each fleet</li>
+<li>Constant selectivity = 0 (Valid for biomass pools like Scallop.
+Applies <code>sel_XXX</code>)</li>
+<li>Logistic selectivity = 2 (Valid for age based groups. Selectivity is
+based on length). Note Atlantis does not track lengths so they are
+calculated internally based on a user supplied length-weight
+relationship</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="calculating-length-in-age-structured-groups-and-biomass-pools-from-manual">Calculating length in age-structured groups and biomass pools (from
+manual)<a class="anchor" aria-label="anchor" href="#calculating-length-in-age-structured-groups-and-biomass-pools-from-manual"></a>
+</h3>
+<p>If length-based selectivity is selected for a fishery, it will be
+applied to both age-structured groups and biomass pools. The application
+of length-based selectivity to biomass pools is a new feature in
+Atlantis and it is important to get it right, or else invertebrates may
+not be caught by the gear (see wiki post here)</p>
+<p>Length of an age group in age-structured groups is calculated using
+length-weight conversion parameters (<code>li_a_XXX</code> and
+<code>li_b_XXX</code>) given in the biology.prm file. For this, first,
+the structural and reserve nitrogen (RN+SN, in mg) are added up and
+converted to wet weight in grams (wgt) as:</p>
+<p><span class="math display">\[wgt = (RN + SN) . wetdry.
+X_{CN}/100\]</span></p>
+<p>where wetdry is the wet weight to ash free dry weight ratio
+(<code>k_wetdry</code> in biology.prm) typically set to 20 in many
+Atlantis parameter files, based on using C as a proxy for dry weight
+(but noting that in many models and literature the wet : dry ratio used
+is often closer to 6-8) and X_CN is the carbon to nitrogen Redfield
+ratio (X_CN in biology.prm) typically set to 5.7.</p>
+<p>The wgt (in grams) is then converted to length (in cm) using the
+standard equation</p>
+<p><span class="math display">\[wgt = a.length^b\]</span> or <span class="math display">\[length = \left(
+\frac{wgt}{a}\right)^{1/b}\]</span></p>
+<p>where a is <code>li_a_XXX</code> and b is <code>li_b_XXX</code> in
+the biology.prm. Note that these parameters could be set in such a way
+to return length in metres instead, but by convention it is in cm (as
+are any other faunal lengths).</p>
+<ul>
+<li>
+<p><code>YYYsel_lsm</code> (at_harvest.prm)</p>
+<ul>
+<li>The length at 50% selectivity, also defined as the inflection point
+lsm given in cm</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>YYYsel_b</code> (at_harvest.prm)</p>
+<ul>
+<li>Spread or steepness of the selectivity curve selb</li>
+</ul>
+</li>
+</ul>
+<p><strong>NOTE: from 15.4</strong> It might be easier to track the
+fishing outcomes if catchability or escapement are modified one at a
+time. So, for example, the catchability can be set to 1, but escapement
+can be set to a different age or length specific proportion.
+Alternatively, the user might want no escapement and modify the
+available biomass through catchability only. <strong><em>Finally, the
+simplest option would include no escapement and 100% catchability; then
+the available biomass of the target and bycatch species of fishery YYY,
+in the swept volume of the cell, would only be limited by the fishery’s
+gear selectivity.</em></strong></p>
+</div>
+<div class="section level3">
+<h3 id="escapement">Escapement<a class="anchor" aria-label="anchor" href="#escapement"></a>
+</h3>
+<p>Provisions are made for escapement in the NEUS model but all
+fisheries set to have no escapement</p>
+<ul>
+<li>
+<p><code>flagescapement_XXX</code> (at_harvest.prm)</p>
+<ul>
+<li>No escapement (0)</li>
+<li>Constant escapement (1, provide proportions in
+<code>p_escape_XXX</code>)</li>
+<li>Size-based escapement (2, provide <code>Ka_escape_XXX</code>,
+<code>Kb_escape_XXX</code>)</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>p_escape_XXX</code> (at_harvest.prm)</p>
+<ul>
+<li>Probability of escapement. Vector of proportions (length =
+#fisheries). All Values = 0 (p_escape = ka.Length + kb)</li>
+</ul>
+<p><br></p>
+</li>
+<li>
+<p><code>Ka_escape_XXX</code>,<code>Kb_escape_XXX</code> - All
+values = 0</p>
+<p><br></p>
+</li>
+</ul>
+</div>
+<div class="section level3">
+<h3 id="management-scalars">Management scalars<a class="anchor" aria-label="anchor" href="#management-scalars"></a>
+</h3>
+<ul>
+<li>
+<code>YYY_flagmanage</code> (at_harvest.prm)
+<ul>
+<li>fleet specific value to determine if sclars will be applied.</li>
+<li>All Values = 0. No management scalars are currently applied</li>
+</ul>
+<br>
+</li>
+</ul>
+<p>With these settings the Harvest should collapse to something
+like:</p>
+<p>Harvest = Effort * sweptarea * Biomass</p>
+<p>Therefore included estimated Effort in forcing file Effort =
+Harvest/(Biomass*sweptarea)</p>
+</div>
+</div>
+<div class="section level2">
+<h2 id="calibration-tips">Calibration tips<a class="anchor" aria-label="anchor" href="#calibration-tips"></a>
+</h2>
+<ol style="list-style-type: decimal">
+<li>Estimate effort from data and keep fixed in box.ts files</li>
+<li>YYY_sweptarea to get in ball park</li>
+<li>q_XXX and sel_XXX to fine tune (using selcurve_YYY = 2
+(logistic))</li>
+<li>Turn on fleet of interest, turn off others using YYY_tStart</li>
+</ol>
 </div>
   </div>
 
