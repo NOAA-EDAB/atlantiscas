@@ -63,7 +63,12 @@ tab <- readRDS(here::here("data/fleetDescriptionTable.rds")) |>
   dplyr::select(-PORTID)
 
 DT::datatable(tab,
-              options = list(pageLength = 20))
+              extensions ='Buttons',
+              options = list(buttons = list(list(extend = 'csv',filename = "AtlantisFleetDefinitions"),
+                                            'copy'),
+                             pageLength = 20,
+                             autoWidth=T),
+              escape = F)
 
 ```
 
