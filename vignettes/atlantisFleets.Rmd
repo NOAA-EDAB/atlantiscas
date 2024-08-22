@@ -53,9 +53,19 @@ To force by box level effort we need to define fleets along the northern part of
 
 We will focus primarily on:
 
-1. Scallop fleets (non age structured in Atlantis and some what of a clean fishery with little bycatch)
-2. [NE Groundfish](https://www.nefmc.org/management-plans/northeast-multispecies) fleets (age structured species fun in the FMP)
+1. [Scallop](https://www.nefmc.org/management-plans/scallops) fleets (non age structured in Atlantis and somewhat of a clean fishery with little bycatch)
+2. [NE Groundfish](https://www.nefmc.org/management-plans/northeast-multispecies) fleets (age structured species found in the FMP)
 
+## Fleets Definitions
+
+```{r fleetdefs, echo = F,eval=T}
+tab <- readRDS(here::here("data/fleetDescriptionTable.rds")) |> 
+  dplyr::select(-PORTID)
+
+DT::datatable(tab,
+              options = list(pageLength = 20))
+
+```
 
 ## Parameterization of the model
 
@@ -143,10 +153,29 @@ Pantus based subgrid scale model. All Values = 0. No additional scalar applied t
   ***All mindepth values = 0 Maxdepth values most are 5000 or 1900. Some 255,800,25,50,100,200. These are currently specified by species. Think they should be by fleet***
   
 - `YYY_sweptarea` (at_harvest.prm) 
-  *   The swept volume of water by gear of fishery YYY, m3 day-1. This is a volume, but called area to keep in line with the fisheries science usage. Starting value of 1E6 m3 = .001 km3 per day by the fishery. 
+  *   The swept volume of water by gear of fishery YYY, m3 day-1. This is a volume, but called area to keep in line with the fisheries science usage. This fleet specific value can be changed over time using a suite of other flags and parameters:
+    *   `flagchangeswept` =1. Turns on temporal changes
+    *   `YYY_changeswept_parameters` - indicate which fishery has changes
+    *   `YYY_swept_changes` - the number of changes through time
+    *   `SWEPTchange_start_YYY` - the start day of each change for each fishery
+    *   `SWEPTchange_period_YYY` - the periods over which each change occurs
+    *   `SWEPTchange_mult_YYY` - the multiplier used to get the final value at the end of the change period
+    
+    Starting value of 1E6 m3 = .001 km3 per day by the fishery. 
 
   eg. If a ship trawled for 1km with a net opening of 10m x 10m it would sample = 1E5 m3 water = 10% of starting value.
 
+NOTE: Manual 15.8.12. To convert the swept volume per unit effort of fishing pressure to fishing pressure per day per m3 Atlantis divides the total swept volume (in m3 per day per box) by the box volume available to the fishery based on its access to habitats, i.e. the propfish value. This is the same proportion of accessible box volume that is used in the calculation of the habitat scalar, described in chapter 15.7.3.
+
+$$F_{m3}=\frac{volume_{swept}}{volume_{box}prop_{fish}}$$
+
+where 
+$prop_{fish}$ = is the proportion of box area accessible to the fishery according to the habitats they can access, which can also be seen as a probability that the fishing gear has access to the individuals of species in this box (note, this is NOT a proportion of area fished based on effort allocations, but just the habitat overlap)
+$volume_{box}prop_fish$ = total volume of available to fishery
+
+
+NOTE: NOTE!
+Ensuring meaningful representation of fisheries habitat access and vertical effort distribution Note, that the habitat dependent `propfish` scalar is applied to each layer of the box and not to the bottom layer only. This means that the users have to make sure that the vertical distribution of fishing effort and habitat access by fisheries makes sense. The habitats probably should have no effect on fisheries that operate in pelagic areas only. In this case the `habitat_YYY` should be set to 1 for all habitats to ensure that the fishery has access to the entire volume of the cell. The `habitat_YYY` vector makes sense for demersal fisheries only and the users should make sure that the vertical distribution of the fishing effort is also concentrated (or occurs entirely) in the bottom water column layer.
 
 <br>
   

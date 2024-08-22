@@ -28,8 +28,6 @@ SCA is the atlantis group for scallops.
 
 Gear Categories identified, in the data set, as scallop vessels were
 
-* TRAWL BOTTOM SCALLOP
-* DREDGE SCALLOP
 * Scallop Gear 
 
 These GEARCAT(s) were filtered to provide the following output

@@ -74,6 +74,7 @@
     <li>
       <a href="../articles/ports.html">Port locations</a>
     </li>
+    <li class="dropdown-header">Fleets</li>
     <li>
       <a href="../articles/scallops.html">Sea Scallops</a>
     </li>
@@ -82,6 +83,10 @@
     </li>
     <li>
       <a href="../articles/squid.html">Squid</a>
+    </li>
+    <li class="dropdown-header">Selectivity</li>
+    <li>
+      <a href="../articles/groundfishSelectivity.html">NE groundfish selectivity</a>
     </li>
   </ul>
 </li>
@@ -127,7 +132,12 @@
 
       
 
-      </header><div class="row">
+      </header><link href="atlantisFleets_files/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet">
+<script src="atlantisFleets_files/htmlwidgets-1.6.4/htmlwidgets.js"></script><link href="atlantisFleets_files/datatables-css-0.0.0/datatables-crosstalk.css" rel="stylesheet">
+<script src="atlantisFleets_files/datatables-binding-0.32/datatables.js"></script><link href="atlantisFleets_files/dt-core-1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+<link href="atlantisFleets_files/dt-core-1.13.6/css/jquery.dataTables.extra.css" rel="stylesheet">
+<script src="atlantisFleets_files/dt-core-1.13.6/js/jquery.dataTables.min.js"></script><link href="atlantisFleets_files/crosstalk-1.2.1/css/crosstalk.min.css" rel="stylesheet">
+<script src="atlantisFleets_files/crosstalk-1.2.1/js/crosstalk.min.js"></script><div class="row">
   <div class="col-md-9 contents">
     <div class="page-header toc-ignore">
       <h1 data-toc-skip>Atlantis Parameterization</h1>
@@ -183,12 +193,20 @@ trips take place over the year)</li>
 northern part of the eastern seaboard.</p>
 <p>We will focus primarily on:</p>
 <ol style="list-style-type: decimal">
-<li>Scallop fleets (non age structured in Atlantis and some what of a
-clean fishery with little bycatch)</li>
+<li>
+<a href="https://www.nefmc.org/management-plans/scallops" class="external-link">Scallop</a>
+fleets (non age structured in Atlantis and somewhat of a clean fishery
+with little bycatch)</li>
 <li>
 <a href="https://www.nefmc.org/management-plans/northeast-multispecies" class="external-link">NE
-Groundfish</a> fleets (age structured species fun in the FMP)</li>
+Groundfish</a> fleets (age structured species found in the FMP)</li>
 </ol>
+</div>
+<div class="section level2">
+<h2 id="fleets-definitions">Fleets Definitions<a class="anchor" aria-label="anchor" href="#fleets-definitions"></a>
+</h2>
+<div class="datatables html-widget html-fill-item" id="htmlwidget-ac96cb3ee4656e2e9ec3" style="width:100%;height:auto;"></div>
+<script type="application/json" data-for="htmlwidget-ac96cb3ee4656e2e9ec3">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11"],["NE Groundfish","NE Groundfish","NE Groundfish","NE Groundfish","NE Groundfish","NE Groundfish","NE Groundfish","NE Groundfish","Scallop","Scallop","Scallop"],["PORTLAND","PORTSMOUTH","GLOUCESTER","BOSTON","CHATHAM","NEW BEDFORD","POINT JUDITH","MONTAUK","NEW BEDFORD","CAPE MAY","NEWPORT NEWS"],["ME","NH","MA","MA","MA","MA","RI","NY","MA","NJ","VA"],[43.6573605,43.0702223,42.6153595,42.3554334,41.6820563,41.6362152,41.3653803,41.0347223,41.6362152,38.933431,36.9775016],[-70.2586618,-70.7548621,-70.66246080000001,-71.06051100000001,-69.9597376,-70.93420500000001,-71.48672259999999,-71.94426230000001,-70.93420500000001,-74.9214226,-76.42977],["Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Bottom Trawl, Sink Gillnet","Scallop Gear","Scallop Gear","Scallop Gear"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Fleet<\/th>\n      <th>MainPort<\/th>\n      <th>State<\/th>\n      <th>lat<\/th>\n      <th>lon<\/th>\n      <th>GearType<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"pageLength":20,"columnDefs":[{"className":"dt-right","targets":[4,5]},{"orderable":false,"targets":0},{"name":" ","targets":0},{"name":"Fleet","targets":1},{"name":"MainPort","targets":2},{"name":"State","targets":3},{"name":"lat","targets":4},{"name":"lon","targets":5},{"name":"GearType","targets":6}],"order":[],"autoWidth":false,"orderClasses":false,"lengthMenu":[10,20,25,50,100]}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div class="section level2">
 <h2 id="parameterization-of-the-model">Parameterization of the model<a class="anchor" aria-label="anchor" href="#parameterization-of-the-model"></a>
@@ -350,12 +368,58 @@ species. Think they should be by fleet</em></strong></p>
 <ul>
 <li>The swept volume of water by gear of fishery YYY, m3 day-1. This is
 a volume, but called area to keep in line with the fisheries science
-usage. Starting value of 1E6 m3 = .001 km3 per day by the fishery.</li>
+usage. This fleet specific value can be changed over time using a suite
+of other flags and parameters:</li>
+<li>
+<code>flagchangeswept</code> =1. Turns on temporal changes</li>
+<li>
+<code>YYY_changeswept_parameters</code> - indicate which fishery has
+changes</li>
+<li>
+<code>YYY_swept_changes</code> - the number of changes through
+time</li>
+<li>
+<code>SWEPTchange_start_YYY</code> - the start day of each change
+for each fishery</li>
+<li>
+<code>SWEPTchange_period_YYY</code> - the periods over which each
+change occurs</li>
+<li>
+<code>SWEPTchange_mult_YYY</code> - the multiplier used to get the
+final value at the end of the change period</li>
 </ul>
+<p>Starting value of 1E6 m3 = .001 km3 per day by the fishery.</p>
 <p>eg. If a ship trawled for 1km with a net opening of 10m x 10m it
 would sample = 1E5 m3 water = 10% of starting value.</p>
 </li>
 </ul>
+<p>NOTE: Manual 15.8.12. To convert the swept volume per unit effort of
+fishing pressure to fishing pressure per day per m3 Atlantis divides the
+total swept volume (in m3 per day per box) by the box volume available
+to the fishery based on its access to habitats, i.e. the propfish value.
+This is the same proportion of accessible box volume that is used in the
+calculation of the habitat scalar, described in chapter 15.7.3.</p>
+<p><span class="math display">\[F_{m3}=\frac{volume_{swept}}{volume_{box}prop_{fish}}\]</span></p>
+<p>where <span class="math inline">\(prop_{fish}\)</span> = is the
+proportion of box area accessible to the fishery according to the
+habitats they can access, which can also be seen as a probability that
+the fishing gear has access to the individuals of species in this box
+(note, this is NOT a proportion of area fished based on effort
+allocations, but just the habitat overlap) <span class="math inline">\(volume_{box}prop_fish\)</span> = total volume of
+available to fishery</p>
+<p>NOTE: NOTE! Ensuring meaningful representation of fisheries habitat
+access and vertical effort distribution Note, that the habitat dependent
+<code>propfish</code> scalar is applied to each layer of the box and not
+to the bottom layer only. This means that the users have to make sure
+that the vertical distribution of fishing effort and habitat access by
+fisheries makes sense. The habitats probably should have no effect on
+fisheries that operate in pelagic areas only. In this case the
+<code>habitat_YYY</code> should be set to 1 for all habitats to ensure
+that the fishery has access to the entire volume of the cell. The
+<code>habitat_YYY</code> vector makes sense for demersal fisheries only
+and the users should make sure that the vertical distribution of the
+fishing effort is also concentrated (or occurs entirely) in the bottom
+water column layer.</p>
 <p><br></p>
 <p><strong><em>Need to better understand the range of a tow to estimate
 if this value has any meaning</em></strong></p>
@@ -448,10 +512,10 @@ lsm given in cm</li>
 </ul>
 </li>
 </ul>
-<p><strong>NOTE: from 15.4</strong> It might be easier to track the
-fishing outcomes if catchability or escapement are modified one at a
-time. So, for example, the catchability can be set to 1, but escapement
-can be set to a different age or length specific proportion.
+<p><strong>NOTE: from Manual. Chapter: 15.4</strong> It might be easier
+to track the fishing outcomes if catchability or escapement are modified
+one at a time. So, for example, the catchability can be set to 1, but
+escapement can be set to a different age or length specific proportion.
 Alternatively, the user might want no escapement and modify the
 available biomass through catchability only. <strong><em>Finally, the
 simplest option would include no escapement and 100% catchability; then
