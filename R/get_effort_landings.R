@@ -10,6 +10,8 @@
 #'
 #' @export
 #'
+#'@family modelData
+#'
 #' @examples
 #' \dontrun{
 #' fleetData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds"))

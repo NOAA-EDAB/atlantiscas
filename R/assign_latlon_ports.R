@@ -13,6 +13,9 @@
 #' 1. clean PORT Table with lat an lons
 #' 2. REVENUE file for ports within NEUS footprint
 #' 3. REVENUE flle for ports Outside NEUS footprint
+#'
+#' @family processData
+#'
 #' @export
 
 # 18175111 records

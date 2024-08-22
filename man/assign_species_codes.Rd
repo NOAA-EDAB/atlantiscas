@@ -9,3 +9,11 @@ assign_species_codes(commercialData)
 \description{
 Reads species from dev branch of neus-atlantis
 }
+\seealso{
+Other processData: 
+\code{\link{assign_latlon_ports}()},
+\code{\link{assign_squid_trips}()},
+\code{\link{assign_unclassified_groups}()},
+\code{\link{process_data}()}
+}
+\concept{processData}

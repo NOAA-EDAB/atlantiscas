@@ -26,3 +26,11 @@ We use PORTID, PORTNM, STATE in the data and cdfbs.port table
 \details{
 Need to deal with Recreational data
 }
+\seealso{
+Other processData: 
+\code{\link{assign_species_codes}()},
+\code{\link{assign_squid_trips}()},
+\code{\link{assign_unclassified_groups}()},
+\code{\link{process_data}()}
+}
+\concept{processData}

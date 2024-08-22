@@ -6,6 +6,8 @@
 #' @param allData Data frame
 #' @param p Numeric. Value used to define the proportion of squid (by landings) in a trip to identify as a squid trip
 #'
+#' @family processData
+#'
 #'
 #'@export
 

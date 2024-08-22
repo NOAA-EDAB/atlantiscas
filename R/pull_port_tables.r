@@ -5,6 +5,8 @@
 #' @param channel A connection object from dbutils::connect_to_database`
 #' @param write Boolean. Write output to file
 #'
+#'@family supporting
+#'
 #'@export
 
 pull_port_tables <- function(channel,saveToFile = F) {

@@ -12,3 +12,9 @@ data frames
 \description{
 Reads in scallop data and returns effort and landings by box for main ports
 }
+\seealso{
+Other modelData: 
+\code{\link{create_atlantis_groundfish_data}()},
+\code{\link{get_effort_landings}()}
+}
+\concept{modelData}

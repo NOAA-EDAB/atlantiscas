@@ -15,3 +15,11 @@ assign_squid_trips(allData, p = 0.3)
 Define trips as squid trips based on the percentage of squid caught in each trip
 A new column is created containing a boolean
 }
+\seealso{
+Other processData: 
+\code{\link{assign_latlon_ports}()},
+\code{\link{assign_species_codes}()},
+\code{\link{assign_unclassified_groups}()},
+\code{\link{process_data}()}
+}
+\concept{processData}

@@ -4,6 +4,8 @@
 #'
 #' @return list of commercial and rec data
 #'
+#'@family supporting
+#'
 #' @export
 
 #channel <- dbutils::connect_to_database("nefscdb1","user")

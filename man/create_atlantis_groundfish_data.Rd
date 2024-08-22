@@ -13,3 +13,9 @@ data frames
 Reads in groundfish data and returns effort and landings by box for main ports.
 input data obtained from create_vignete_dataset
 }
+\seealso{
+Other modelData: 
+\code{\link{create_atlantis_scallop_data}()},
+\code{\link{get_effort_landings}()}
+}
+\concept{modelData}

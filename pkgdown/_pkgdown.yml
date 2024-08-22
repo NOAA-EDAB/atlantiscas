@@ -31,12 +31,17 @@ navbar:
         href: articles/ExploreFishingData.html
       - text: Port locations
         href: articles/ports.html
+      - text: Fleets
       - text: Sea Scallops
         href: articles/scallops.html
       - text: NE Groundfish
         href: articles/groundfish.html
       - text: Squid
         href: articles/squid.html
+      - text: Selectivity
+      - text: NE groundfish selectivity
+        href: articles/groundfishSelectivity.html
+
     slides:
       text: Presentations
       menu:

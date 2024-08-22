@@ -25,3 +25,9 @@ get_effort(fleetData,
            combine = data.frame(main = c(320201, 240115, 240301), associated = c(320901,240813, 240601) ))
 }
 }
+\seealso{
+Other modelData: 
+\code{\link{create_atlantis_groundfish_data}()},
+\code{\link{create_atlantis_scallop_data}()}
+}
+\concept{modelData}

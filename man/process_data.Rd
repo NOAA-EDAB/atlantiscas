@@ -13,3 +13,11 @@ list of commercial and rec data
 Read in fishing data, fix problems, add lat, lon to ports and other
 data cleaning
 }
+\seealso{
+Other processData: 
+\code{\link{assign_latlon_ports}()},
+\code{\link{assign_species_codes}()},
+\code{\link{assign_squid_trips}()},
+\code{\link{assign_unclassified_groups}()}
+}
+\concept{processData}

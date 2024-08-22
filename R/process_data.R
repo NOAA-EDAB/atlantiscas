@@ -5,6 +5,7 @@
 #'
 #' @return list of commercial and rec data
 #'
+#' @family processData
 #'
 #' @export
 

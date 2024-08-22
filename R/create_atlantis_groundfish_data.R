@@ -4,6 +4,9 @@
 #' input data obtained from create_vignete_dataset
 #'
 #' @return data frames
+#'
+#' @family modelData
+#'
 #' @export
 
 create_atlantis_groundfish_data <- function() {

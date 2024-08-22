@@ -7,6 +7,8 @@
 #' @param allData Data frame
 #'
 #'
+#' @family processData
+#'
 #'@export
 
 assign_unclassified_groups <- function(allData,lbstotons = 2204.62){

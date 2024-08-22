@@ -3,6 +3,9 @@
 #' Reads in scallop data and returns effort and landings by box for main ports
 #'
 #' @return data frames
+#'
+#' @family modelData
+#'
 #' @export
 
 create_atlantis_scallop_data <- function() {

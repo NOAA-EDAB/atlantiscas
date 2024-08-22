@@ -14,3 +14,11 @@ Reads species from dev branch of neus-atlantis. There are several codes in the l
 refer to unclassified species. These need to be assigned to functional groups
 Only species remaining unclassified are unknown sharks
 }
+\seealso{
+Other processData: 
+\code{\link{assign_latlon_ports}()},
+\code{\link{assign_species_codes}()},
+\code{\link{assign_squid_trips}()},
+\code{\link{process_data}()}
+}
+\concept{processData}

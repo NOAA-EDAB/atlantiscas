@@ -2,8 +2,7 @@
 #'
 #' Reads species from dev branch of neus-atlantis
 #'
-#'
-#'
+#' @family processData
 #'
 #'@export
 

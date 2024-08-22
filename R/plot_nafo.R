@@ -2,7 +2,7 @@
 #'
 #' @export
 #'
-#'
+#' @family supporting
 
 
 plot_nafo <- function() {

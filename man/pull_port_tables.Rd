@@ -14,3 +14,9 @@ pull_port_tables(channel, saveToFile = F)
 \description{
 From VTR and CFDBS
 }
+\seealso{
+Other supporting: 
+\code{\link{plot_nafo}()},
+\code{\link{read_data}()}
+}
+\concept{supporting}

@@ -9,3 +9,9 @@ plot_nafo()
 \description{
 Plot NEUS footprint along with NAFO areas
 }
+\seealso{
+Other supporting: 
+\code{\link{pull_port_tables}()},
+\code{\link{read_data}()}
+}
+\concept{supporting}
