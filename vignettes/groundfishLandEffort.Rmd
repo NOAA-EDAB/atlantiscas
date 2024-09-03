@@ -1,0 +1,156 @@
+---
+title: "NE Groundfish fleet - Effort & Landings"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{NE Groundfish fleet - Effort & Landings}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, warning=FALSE, echo = F, message=F,warning=F}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(atlantiscas)
+library(ncdf4)
+library(sf)
+```
+
+## Species
+
+The [NE multispecies (Groundfish) FMP](https://www.nefmc.org/management-plans/northeast-multispecies) comprises the following species:
+
+-   Atlantic Cod (COD)
+-   Haddock (HAD)
+-   Yellowtail Flounder (YTF)
+-   Pollock (POL)
+-   American Plaice (PLA)
+-   Witch Flounder (WTF)
+-   White Hake (WHK)
+-   Winter Flounder (WIF)
+-   Redfish (RED)
+-   Atlantic Halibut (HAL)
+
+Non target species
+
+-   Windowpane flounder (WPF)
+-   Ocean Pout (OPT)
+-   Atlantic Wolffish (WOL)
+
+These GEARCAT(s) associated with groundfish species are:
+
+-   Bottom Trawl
+-   Sink Gillnet
+
+\*\* Still need to separate some species (sharks) \*\*
+
+```{r groundfishdata, echo = F}
+# CONVERT TO METRIC TONS
+lbstotons <- 2204.62
+boundaryBoxes <- c(0,23:29)
+threshold1 <- .99 # threshold for filtering data for plots
+# gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds"))
+# gf <- gfData$neus |>
+#   dplyr::mutate(Year = as.integer(Year)) |>
+#   dplyr::mutate(InsideLANDED = InsideLANDED/lbstotons)
+
+speciesCodes <- c("COD","HAD","YTF","POL","PLA","WTF","WHK","WIF","RED","HAL","WPF","OPT","WOL")
+
+mainPortsIDs = c(240403,240207,220101,240115,420209,240301,320201,350635)
+associatedPorts = data.frame(main=c(320201,240115,240301),associated=c(320901,240813,240601))
+
+ports <- unique(c(mainPortsIDs,associatedPorts$associated))
+
+
+```
+
+## Effort by port
+
+The effort variable is Days at sea (DAS) and is a crude metric. Only integer values and rounded up to the nearest whole day. It is the length of the trip.
+
+After aggregating the top ports based on the decisions found in this section {#sel} and combining all remaining ports into an "other fleet" we can look at the total effort by fleet in units: days at sea
+
+```{r effort1, echo =F}
+
+#this rds file was created using get_effort_landings.r
+effortLandByBox <- readRDS(here::here("data/groundfishFleetData.rds")) #get_effort_landings(gf,ports,associatedPorts,speciesCodes)
+
+effortByBox <- effortLandByBox$effort
+landingsByBox <- effortLandByBox$landings
+
+annualEffort <- effortByBox |> 
+  dplyr::group_by(Year,newport,STATEABB) |> 
+  dplyr::summarise(effort = sum(effort),
+                   .groups="drop")
+
+ggplot2::ggplot(annualEffort) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=effort)) +
+  ggplot2::facet_wrap(~as.factor(newport)) + 
+  ggplot2::ylab("Effort (Days)") +
+  ggplot2::ggtitle("Effort by port") +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) 
+
+```
+
+## Effort by Port
+
+Partition effort by box.
+
+Note: In atlantis effort is entered as as daily effort (days of effort per day). This equates to dividing the annual effort by 365 days.
+
+
+```{r effortport, echo = F, eval = T}
+p <- ggplot2::ggplot(effortByBox) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=effort/365,col = newport)) +
+  ggplot2::facet_wrap(~Box) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Effort (Days per Day)") +
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port"))
+
+plotly::ggplotly(p)
+
+
+```
+
+
+# Landings by Port
+
+```{r landingsport, echo = F,eval = T}
+#plot landings
+boxLandings <- landingsByBox |> 
+  dplyr::group_by(Year,Box,newport) |> 
+  dplyr::summarise(landings=sum(landings),
+                   .groups = "drop")
+speciesLandings <- landingsByBox |> 
+  dplyr::group_by(Year,Code,newport) |> 
+  dplyr::summarise(landings=sum(landings),
+                   .groups = "drop")
+
+p <- ggplot2::ggplot(boxLandings) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landings,col = newport)) +
+  ggplot2::facet_wrap(~Box) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Landings (Metric Tons)") +
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port"))
+
+plotly::ggplotly(p)
+
+```
+
+
+# Landings by Species
+
+```{r landingspecies, echo = F,eval = T}
+p <- ggplot2::ggplot(speciesLandings) +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landings,col = newport)) +
+  ggplot2::facet_wrap(~Code) +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Landings (Metric Tons)") +
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port"))
+
+
+  plotly::ggplotly(p)
+  
+```
