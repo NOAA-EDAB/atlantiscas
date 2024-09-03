@@ -1,0 +1,54 @@
+---
+title: "NE Groundfish selectivity"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{NE Groundfish selectivity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, warning=FALSE, echo = F, message=F,warning=F}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(atlantiscas)
+library(ncdf4)
+library(sf)
+```
+
+## Species
+
+The [NE multispecies (Groundfish) FMP](https://www.nefmc.org/management-plans/northeast-multispecies) 
+
+-   Atlantic Cod (COD)
+-   Haddock (HAD)
+-   Yellowtail Flounder (YTF)
+-   Pollock (POL)
+-   American Plaice (PLA)
+-   Witch Flounder (WTF)
+-   White Hake (WHK)
+-   Winter Flounder (WIF)
+-   Redfish (RED)
+-   Atlantic Halibut (HAL)
+
+Non target species
+
+-   Windowpane flounder (WPF)
+-   Ocean Pout (OPT)
+-   Atlantic Wolffish (WOL)
+
+```{r groundfishdata, echo = F}
+# CONVERT TO METRIC TONS
+lbstotons <- 2204.62
+boundaryBoxes <- c(0,23:29)
+gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds")) 
+gf <- gfData$neus |> 
+  dplyr::mutate(Year = as.integer(Year)) |> 
+  dplyr::mutate(InsideLANDED = InsideLANDED/lbstotons)
+
+speciesCodes <- c("COD","HAD","YTF","POL","PLA","WTF","WHK","WIF","RED","HAL","WPF","OPT","WOL")
+
+timeRange <- range(gf$Year)
+```
