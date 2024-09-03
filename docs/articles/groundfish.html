@@ -62,18 +62,21 @@
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
-<li>
+<li class="dropdown-header">Model Requirements</li>
+    <li>
       <a href="../articles/atlantisFleets.html">Atlantis requirements</a>
     </li>
+    <li class="dropdown-header">Data Exploration</li>
     <li>
       <a href="../articles/dataQAQC.html">Data QA/QC</a>
     </li>
     <li>
-      <a href="../articles/ExploreFishingData.html">Data Exploration</a>
+      <a href="../articles/ExploreFishingData.html">General Exploration</a>
     </li>
     <li>
       <a href="../articles/ports.html">Port locations</a>
     </li>
+    <li class="dropdown-header">Fleets Definitions</li>
     <li>
       <a href="../articles/scallops.html">Sea Scallops</a>
     </li>
@@ -81,7 +84,14 @@
       <a href="../articles/groundfish.html">NE Groundfish</a>
     </li>
     <li>
+      <a href="../articles/groundfishLandEffort.html">NE Groundfish Landings &amp; Effort</a>
+    </li>
+    <li>
       <a href="../articles/squid.html">Squid</a>
+    </li>
+    <li class="dropdown-header">Selectivity</li>
+    <li>
+      <a href="../articles/groundfishSelectivity.html">NE groundfish selectivity</a>
     </li>
   </ul>
 </li>
@@ -325,36 +335,59 @@ account all remaining landings to satisfy model requirements</p>
 <p>Total Landings over 1996-2021 = 5.507^{4} metric tons</p>
 <p>Time series of landings by box of other fleet</p>
 <p><img src="groundfish_files/figure-html/otherfleettime-1.png" width="700"></p>
-</div>
-<div class="section level2">
-<h2 id="effort">Effort<a class="anchor" aria-label="anchor" href="#effort"></a>
-</h2>
-<p>The effort variable is Days at sea (DAS) and is a crude metric. Only
-integer values and rounded up to the nearest whole day. It is the length
-of the trip.</p>
-<p>After aggregating the top ports based on the decisions found in this
-section {#sel} and combining all remaining ports into an “other fleet”
-we can look at the total effort by fleet in units: days at sea</p>
-<pre><code><span><span class="co">#&gt; Calculating trip effort for main ports</span></span>
-<span><span class="co">#&gt; calculating landings for main ports</span></span>
-<span><span class="co">#&gt; calculating effort for other ports</span></span>
-<span><span class="co">#&gt; calculating landings for other ports</span></span>
-<span><span class="co">#&gt; combining all data</span></span></code></pre>
-<p><img src="groundfish_files/figure-html/effort1-1.png" width="700"></p>
-</div>
-<div class="section level2">
-<h2 id="effort-by-box-time-series">Effort by box (Time series)<a class="anchor" aria-label="anchor" href="#effort-by-box-time-series"></a>
-</h2>
-<p>Partition effort by box.</p>
-<p>Note: In atlantis effort is entered as as daily effort (days of
-effort per day). This equates to dividing the annual effort by 365 days.
-Her we show the effort by box for the top 3 ports (by landings)</p>
-<p><img src="groundfish_files/figure-html/effort2-1.png" width="700"><img src="groundfish_files/figure-html/effort2-2.png" width="700"><img src="groundfish_files/figure-html/effort2-3.png" width="700"></p>
-</div>
-<div class="section level2">
-<h2 id="landings-by-box-time-series">Landings by box (Time series)<a class="anchor" aria-label="anchor" href="#landings-by-box-time-series"></a>
-</h2>
-<p><img src="groundfish_files/figure-html/gflandingsboxtime-1.png" width="700"><img src="groundfish_files/figure-html/gflandingsboxtime-2.png" width="700"><img src="groundfish_files/figure-html/gflandingsboxtime-3.png" width="700"></p>
+<!-- ## Effort -->
+<!-- The effort variable is Days at sea (DAS) and is a crude metric. Only integer values and rounded up to the nearest whole day. It is the length of the trip. -->
+<!-- After aggregating the top ports based on the decisions found in this section {#sel} and combining all remaining ports into an "other fleet" we can look at the total effort by fleet in units: days at sea -->
+<!-- ```{r effort1, echo =F} -->
+<!-- ports <- unique(c(mainPortsIDs,associatedPorts$associated)) -->
+<!-- effortLandByBox <- get_effort_landings(gf,ports,associatedPorts,speciesCodes) -->
+<!-- effortByBox <- effortLandByBox$effort -->
+<!-- landingsByBox <- effortLandByBox$landings -->
+<!-- annualEffort <- effortByBox |>  -->
+<!--   dplyr::group_by(Year,newport,STATEABB) |>  -->
+<!--   dplyr::summarise(effort = sum(effort), -->
+<!--                    .groups="drop") -->
+<!-- ggplot2::ggplot(annualEffort) + -->
+<!--   ggplot2::geom_line(ggplot2::aes(x=Year,y=effort)) + -->
+<!--   ggplot2::facet_wrap(~as.factor(newport)) +  -->
+<!--   ggplot2::ylab("Effort (Days)") + -->
+<!--   ggplot2::ggtitle("Effort by port") + -->
+<!--   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  -->
+<!-- ``` -->
+<!-- ## Effort by box (Time series) -->
+<!-- Partition effort by box. -->
+<!-- Note: In atlantis effort is entered as as daily effort (days of effort per day). This equates to dividing the annual effort by 365 days. Her we show the effort by box for the top 3 ports (by landings) -->
+<!-- ```{r effort2, echo =F} -->
+<!-- port3 <- head(ports10,3) -->
+<!-- boxEffort <- effortByBox |>  -->
+<!--   dplyr::filter(newport %in% port3) -->
+<!-- for (aport in port3) { -->
+<!--   p <- ggplot2::ggplot(boxEffort |> dplyr::filter(newport == aport)) + -->
+<!--     ggplot2::geom_line(ggplot2::aes(x=Year,y=effort)) + -->
+<!--     ggplot2::facet_wrap(~as.factor(Box)) +  -->
+<!--     ggplot2::ylab("Effort (Days)") + -->
+<!--     ggplot2::ggtitle(aport) + -->
+<!--     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  -->
+<!--   suppressMessages(print(p)) -->
+<!-- } -->
+<!-- ``` -->
+<!-- ## Landings by box (Time series) -->
+<!-- ```{r gflandingsboxtime, echo =F} -->
+<!-- landBox<- landingsByBox |>  -->
+<!--   dplyr::filter(newport %in% port3) |>  -->
+<!--   dplyr::group_by(Year,Box,newport) |>  -->
+<!--   dplyr::summarise(landings = sum(landings), -->
+<!--                    .groups="drop") -->
+<!-- for (aport in port3) { -->
+<!--   p <- ggplot2::ggplot(landBox |> dplyr::filter(newport == aport)) + -->
+<!--     ggplot2::geom_line(ggplot2::aes(x=Year,y=landings)) + -->
+<!--     ggplot2::facet_wrap(~as.factor(Box)) +  -->
+<!--     ggplot2::ylab("Metric Tons") + -->
+<!--     ggplot2::ggtitle(aport) + -->
+<!--     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90))  -->
+<!--  suppressMessages(print(p)) -->
+<!-- } -->
+<!-- ``` -->
 </div>
   </div>
 
