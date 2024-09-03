@@ -73,21 +73,20 @@ get_effort_landings <- function(fleetData,ports,combine,speciesCodes) {
     dplyr::mutate(Box = as.numeric(Box)) |>
     dplyr::filter(!(PORTID %in% ports),
                   Code %in% speciesCodes) |>
-    dplyr::group_by(Year,Box) |>
+    dplyr::group_by(Year,Box,Code) |>
     dplyr::summarise(landings = sum(InsideLANDED),
                      .groups = "drop") |>
     dplyr::mutate(PID = NA,
                   newport = "OTHER",
-                  STATEABB = "NA",
-                  Code = "NA") |>
-    dplyr::relocate(Year,Box,PID,landings,newport,STATEABB)
+                  STATEABB = "NA") |>
+    dplyr::relocate(Year,Box,PID,Code,landings,newport,STATEABB)
 
 
   portNames <- fleets |>
     dplyr::distinct(newport,STATEABB,PORTID)
 
   message("combining all data")
-  # now combine some of the fleets
+  # now combine some of the fleets (associated ports with main ports)
   # relabel port ids
   fleets$PID <- fleets$PORTID
   das$PID <- das$PORTID
