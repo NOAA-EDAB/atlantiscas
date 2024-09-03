@@ -23,6 +23,7 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    NEFSCspatial
+    NEFSCspatial,
+    plotly
 Remotes:
     NEFSC/NEFSCspatial
