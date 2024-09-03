@@ -23,19 +23,23 @@ navbar:
     articles:
       text: Notebook
       menu:
+      - text: Model Requirements
       - text: Atlantis requirements
         href: articles/atlantisFleets.html
+      - text: Data Exploration
       - text: Data QA/QC
         href: articles/dataQAQC.html
-      - text: Data Exploration
+      - text: General Exploration
         href: articles/ExploreFishingData.html
       - text: Port locations
         href: articles/ports.html
-      - text: Fleets
+      - text: Fleets Definitions
       - text: Sea Scallops
         href: articles/scallops.html
       - text: NE Groundfish
         href: articles/groundfish.html
+      - text: NE Groundfish Landings & Effort
+        href: articles/groundfishLandEffort.html
       - text: Squid
         href: articles/squid.html
       - text: Selectivity
