@@ -1,57 +1,17 @@
----
-title: "NE Groundfish selectivity"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{NE Groundfish selectivity}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
----
+#' Find all groundfish species length data caught by groundfish fleets.
+#'
+#' Pick trips identified as groundfish to find species lengths.
+#' Use to estimate selectivity
 
-```{r setup, warning=FALSE, echo = F, message=F,warning=F}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
 
-library(atlantiscas)
-library(ncdf4)
-library(sf)
-```
-
-## Species
-
-The [NE multispecies (Groundfish) FMP](https://www.nefmc.org/management-plans/northeast-multispecies) 
-
--   Atlantic Cod (COD)
--   Haddock (HAD)
--   Yellowtail Flounder (YTF)
--   Pollock (POL)
--   American Plaice (PLA)
--   Witch Flounder (WTF)
--   White Hake (WHK)
--   Winter Flounder (WIF)
--   Redfish (RED)
--   Atlantic Halibut (HAL)
-
-Non target species
-
--   Windowpane flounder (WPF)
--   Ocean Pout (OPT)
--   Atlantic Wolffish (WOL)
-
-```{r groundselectivity, echo = F,eval=T, message=F}
 # pull groundfish data
 lbstotons <- 2204.62
 boundaryBoxes <- c(0,23:29)
-# species of interest
-gfcodes <- c("RED", "WHK", "COD" ,"HAD" ,"POL", "WTF", "WIF", "HAL", "PLA", "YTF" ,"WPF" ,"WOL", "OPT")
-
 gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds"))
 gf <- gfData$neus |>
   dplyr::mutate(Year = as.integer(Year)) |>
   dplyr::mutate(InsideLANDED = InsideLANDED/lbstotons)
 
-# reads in CAMS tables
 if(0) {
   # attempts to join tables with GARFO
   channel <- dbutils::connect_to_database("NEFSC_USERS","abeet")
@@ -69,17 +29,16 @@ if(0) {
 subtrip <- readRDS(here::here("data-raw/subtrip.rds")) |>
   dplyr::as_tibble()
 
-# distinct trips in gf data
+#select trips
 trips <- gf |>
   dplyr::distinct(TRIPID) |>
   dplyr::pull()
 
-# identify corresponding cams trip id based on gf trips
 camstrips <- subtrip |>
   dplyr::filter(VTR_IMGID %in% trips) |>
   dplyr::pull(CAMSID)
 
-# now pull lengths of species caught 
+# now pull lengths
 if(0) {
   sqlLengths <- "select CAMSID, NESPP3, LENGTH, NUMLEN
   from CAMS_GARFO.cams_cflen_aa
@@ -96,42 +55,30 @@ gflengths <- lengths |>
   dplyr::filter(CAMSID %in% camstrips) |>
   dplyr::mutate(NESPP3 = as.double(NESPP3))
 
-# reads in atlantis groups file to find nespp3 codes
-atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv",show_col_types = FALSE)
+gfcodes <- c("RED", "WHK", "COD" ,"HAD" ,"POL", "WTF", "WIF", "HAL", "PLA", "YTF" ,"WPF" ,"WOL", "OPT")
+
+atlantisGroups <- readr::read_csv("https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/dev_branch/data-raw/data/Atlantis_2_0_groups_svspp_nespp3.csv")
 gfgroups <- atlantisGroups |>
   dplyr::filter(Code %in% gfcodes)
 
-## join by nespp3
+
 allgflengths <- gflengths |>
   dplyr::left_join(gfgroups,by = "NESPP3") |>
   dplyr::filter(Code %in% gfcodes)
 
-# replicate rows based on NUMLEN field
-# eg LENGTH = 46 , NUMLE = 6. 6 fish caught of length 46
 replicatelengths <- allgflengths |>
   tidyr::uncount(NUMLEN)
-```
 
-## Histogram of lengths
-
-Number of fish over all designated groundfish fleets
-
-```{r sel1,echo = F, eval = T}
-
-# Plot over all fleets.
-# to do this by fleet we 'd need to filter out tripid's specific to designated fleets
+# over all fleets.
+# to do this by fleet we 'd need to filter out tripid's
 # plot histogram of lengths
 replicatelengths |>
   ggplot2::ggplot() +
-  ggplot2::geom_histogram(ggplot2::aes(x=LENGTH),bins=25) +
+  ggplot2::geom_histogram(ggplot2::aes(x=LENGTH)) +
   ggplot2::facet_wrap(~Code,scale = "free_x") +
   ggplot2::ylab("Number of fish") +
   ggplot2::xlab("length (cm)")
-```
 
-## Probability curves
-
-```{r sel2, echo=F, eval=T}
 # plot prob curve by species
 replicatelengths |>
   dplyr::select(Code,LENGTH) |>
@@ -144,11 +91,7 @@ replicatelengths |>
   ggplot2::facet_wrap(~Code,scale = "free_x") +
   ggplot2::ylab("Probability") +
   ggplot2::xlab("length (cm)")
-```
 
-## Probability curves stacked
-
-```{r sel3 ,echo=F,eval=T}
 # plot all on same figure
 p <- replicatelengths |>
   dplyr::select(Code,LENGTH) |>
@@ -163,6 +106,4 @@ p <- replicatelengths |>
 
 plotly::ggplotly(p)
 
-```
 
-```
