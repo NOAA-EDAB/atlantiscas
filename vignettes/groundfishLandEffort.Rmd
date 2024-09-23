@@ -107,7 +107,9 @@ p <- ggplot2::ggplot(effortByBox) +
   ggplot2::facet_wrap(~Box) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
   ggplot2::ylab("Effort (Days per Day)") +
-  ggplot2::guides(col=ggplot2::guide_legend(title="Port"))
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
+  ggplot2::theme(panel.spacing.x = ggplot2::unit(1,"lines"),
+                 panel.spacing.y = ggplot2::unit(1.5,"lines"))
 
 plotly::ggplotly(p)
 
@@ -133,7 +135,9 @@ p <- ggplot2::ggplot(boxLandings) +
   ggplot2::facet_wrap(~Box) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
   ggplot2::ylab("Landings (Metric Tons)") +
-  ggplot2::guides(col=ggplot2::guide_legend(title="Port"))
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
+  ggplot2::theme(panel.spacing.x = ggplot2::unit(1,"lines"),
+                 panel.spacing.y = ggplot2::unit(1.5,"lines"))
 
 plotly::ggplotly(p)
 
@@ -148,7 +152,9 @@ p <- ggplot2::ggplot(speciesLandings) +
   ggplot2::facet_wrap(~Code) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
   ggplot2::ylab("Landings (Metric Tons)") +
-  ggplot2::guides(col=ggplot2::guide_legend(title="Port"))
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
+  ggplot2::theme(panel.spacing.x = ggplot2::unit(1,"lines"),
+                 panel.spacing.y = ggplot2::unit(1.5,"lines"))
 
 
   plotly::ggplotly(p)
