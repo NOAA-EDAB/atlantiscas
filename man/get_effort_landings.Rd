@@ -18,7 +18,8 @@ get_effort_landings(fleetData, ports, combine, speciesCodes, lbs = T)
 \item{lbs}{Boolean. Are landings in lbs? (Default = T)}
 }
 \value{
-data frame of port effort aggregated by year, box
+data frame of port effort and landings aggregated by year, box, Gear category, species.
+if in lbs, landings are converted to metric tons
 }
 \description{
 Effort is measured as Days at Sea at the trip level
@@ -26,15 +27,16 @@ Effort is measured as Days at Sea at the trip level
 \examples{
 \dontrun{
 fleetData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds"))
-get_effort(fleetData,
-           ports=c(220101, 320201, 240207, 240115, 240301, 240403, 420209, 350635, 320901, 240813, 240601),
-           combine = data.frame(main = c(320201, 240115, 240301), associated = c(320901,240813, 240601) ))
+get_effort_landings2(fleetData$neus,
+           ports=c(240403,240207,220101,240115,420209,240301,320201,350635),
+           combine = data.frame(main = c(320201, 240115, 240301), associated = c(320901,240813, 240601) ),
+           speciesCodes = c("COD","HAD","YTF","POL","PLA","WTF","WHK","WIF","RED","HAL","WPF","OPT","WOL"),
+           lbs = T)
 }
 }
 \seealso{
 Other modelData: 
 \code{\link{create_atlantis_groundfish_data}()},
-\code{\link{create_atlantis_scallop_data}()},
-\code{\link{get_effort_landings2}()}
+\code{\link{create_atlantis_scallop_data}()}
 }
 \concept{modelData}
