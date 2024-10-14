@@ -4,6 +4,10 @@
 #'
 #' @param fleetData data frame. Data which contains the effort by box, and fleet data. Make sure you understand the units of the landings
 #' @param ports vector, list of ports, by PORTID for which effort is requred
+#' @param combine data frame. main ports and associated ports (one to one)
+#' @param speciesCodes character vector. Atlantis species codes
+#' @param lbs Boolean. Are landings in lbs? (Default = T)
+#'
 #'
 #' @return data frame of port effort aggregated by year, box
 #'
@@ -20,13 +24,17 @@
 #'            combine = data.frame(main = c(320201, 240115, 240301), associated = c(320901,240813, 240601) ))
 #' }
 
-get_effort_landings <- function(fleetData,ports,combine,speciesCodes) {
+get_effort_landings <- function(fleetData,ports,combine,speciesCodes,lbs=T) {
+
+  lbstotons <- 2204.62
+  message("Are landings in lbs or metric tons?")
 
   message("Calculating trip effort for main ports")
   # distinct trips
   tripEff <- fleetData |>
     tidyr::separate(col=Area,into = c("text","Box"),sep = "ID_") |>
-    dplyr::mutate(Box = as.numeric(Box)) |>
+    dplyr::mutate(Box = as.numeric(Box),
+                  Year = as.integer(Year)) |>
     dplyr::filter(PORTID %in% ports) |>
     dplyr::select(Year,Box,newport,STATEABB,PORTID,TRIPID,InsideDAS) |>
     dplyr::distinct()
@@ -112,6 +120,13 @@ get_effort_landings <- function(fleetData,ports,combine,speciesCodes) {
 
   landingsByBox <-  rbind(landings,otherFleetLandings)
 
+  if (lbs) {
+    # convert to mt
+    landingsByBox <- landingsByBox |>
+      dplyr::mutate(landings = landings/lbstotons)
+  }
+
+
   #effort
   effort <- das |>
     dplyr::group_by(Year,Box,PID) |>
@@ -121,6 +136,8 @@ get_effort_landings <- function(fleetData,ports,combine,speciesCodes) {
 
 
   effortByBox <- rbind(effort,otherdas)
+
+  message("Are landings in lbs or metric tons?")
 
   return(list(effort=effortByBox,landings=landingsByBox))
 

@@ -4,12 +4,18 @@
 \alias{get_effort_landings}
 \title{get effort by port, box, fleet for data sets}
 \usage{
-get_effort_landings(fleetData, ports, combine, speciesCodes)
+get_effort_landings(fleetData, ports, combine, speciesCodes, lbs = T)
 }
 \arguments{
 \item{fleetData}{data frame. Data which contains the effort by box, and fleet data. Make sure you understand the units of the landings}
 
 \item{ports}{vector, list of ports, by PORTID for which effort is requred}
+
+\item{combine}{data frame. main ports and associated ports (one to one)}
+
+\item{speciesCodes}{character vector. Atlantis species codes}
+
+\item{lbs}{Boolean. Are landings in lbs? (Default = T)}
 }
 \value{
 data frame of port effort aggregated by year, box
@@ -28,6 +34,7 @@ get_effort(fleetData,
 \seealso{
 Other modelData: 
 \code{\link{create_atlantis_groundfish_data}()},
-\code{\link{create_atlantis_scallop_data}()}
+\code{\link{create_atlantis_scallop_data}()},
+\code{\link{get_effort_landings2}()}
 }
 \concept{modelData}
