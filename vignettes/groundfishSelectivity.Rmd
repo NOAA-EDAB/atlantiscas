@@ -66,18 +66,34 @@ if(0) {
   saveRDS(subtrip,here::here("data-raw/subtrip.rds"))
 }
 
+# distinct camsid, vtr_imgid pairs
 subtrip <- readRDS(here::here("data-raw/subtrip.rds")) |>
-  dplyr::as_tibble()
+  dplyr::as_tibble() |>
+  dplyr::mutate(VTR_IMGID = as.character(VTR_IMGID))
 
-# distinct trips in gf data
+# select trips
+# IDNUM in our data = VTR_IMGID
 trips <- gf |>
-  dplyr::distinct(TRIPID) |>
+  dplyr::distinct(IDNUM) |>
   dplyr::pull()
 
-# identify corresponding cams trip id based on gf trips
-camstrips <- subtrip |>
-  dplyr::filter(VTR_IMGID %in% trips) |>
+# trips in groundfish data
+pairedtrips <-  subtrip |>
+  dplyr::filter(VTR_IMGID %in% trips)
+
+# sel;ect trip id and gear type
+gftripgear <- gf |>
+  dplyr::select(IDNUM,GEARCAT) |>
+  dplyr::distinct()
+
+# find associated cams ids so we can get lengths by gear cat
+idsbyGear <- gftripgear |>
+  dplyr::left_join(pairedtrips,by=c("IDNUM"="VTR_IMGID")) |>
+  dplyr::filter(!is.na(CAMSID))
+
+camstrips <- idsbyGear |>
   dplyr::pull(CAMSID)
+
 
 # now pull lengths of species caught 
 if(0) {
@@ -104,12 +120,14 @@ gfgroups <- atlantisGroups |>
 ## join by nespp3
 allgflengths <- gflengths |>
   dplyr::left_join(gfgroups,by = "NESPP3") |>
-  dplyr::filter(Code %in% gfcodes)
+  dplyr::filter(Code %in% gfcodes) |> 
+  dplyr::filter(LENGTH < 200)
 
 # replicate rows based on NUMLEN field
 # eg LENGTH = 46 , NUMLE = 6. 6 fish caught of length 46
+# AMERICAN  PLAICE have anomolous large lengths. these are removed
 replicatelengths <- allgflengths |>
-  tidyr::uncount(NUMLEN)
+  tidyr::uncount(NUMLEN) 
 ```
 
 ## Histogram of lengths
@@ -164,5 +182,80 @@ p <- replicatelengths |>
 plotly::ggplotly(p)
 
 ```
+
+## Selectivities by GEARCAT
+
+```{r selbygear,echo=F}
+## separate by gear type and repeat plots to
+# determine if there is a difference in selectivity based on
+# fishing gear
+gill <- idsbyGear |>
+  dplyr::filter(GEARCAT == "Sink Gillnet") |>
+  dplyr::distinct(GEARCAT,CAMSID)
+trawl <- idsbyGear |>
+  dplyr::filter(GEARCAT == "Bottom Trawl") |>
+  dplyr::distinct(GEARCAT,CAMSID)
+
+# NAs introduced from CAMS trips associated with other GEARCAT type
+gilllengths <- allgflengths |>
+  dplyr::left_join(gill,by = "CAMSID") |>
+  tidyr::uncount(NUMLEN)
+trawllengths <- allgflengths |>
+  dplyr::left_join(trawl,by = "CAMSID") |>
+  tidyr::uncount(NUMLEN)
+
+combinedlengths <- rbind(gilllengths,trawllengths) |>
+  dplyr::filter(!is.na(GEARCAT))
+```
+
+## Bottom Trawl
+
+```{r plotTrawl, echo = F}
+# plot selectivities by gear
+trawllengths |>
+  dplyr::select(Code,LENGTH) |>
+  dplyr::arrange(Code,LENGTH) |>
+  dplyr::group_by(Code) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::facet_wrap(~Code,scale = "free_x") +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+```
+
+## Gill net
+
+```{r plotGill, echo = F}
+gilllengths |>
+  dplyr::select(Code,LENGTH) |>
+  dplyr::arrange(Code,LENGTH) |>
+  dplyr::group_by(Code) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::facet_wrap(~Code,scale = "free_x") +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+```
+
+
+## Combined
+
+```{r plotCombibned, echo = F}
+# plot prob curve by species
+combinedlengths |>
+  dplyr::select(Code,GEARCAT,LENGTH) |>
+  dplyr::arrange(Code,GEARCAT,LENGTH) |>
+  dplyr::group_by(Code,GEARCAT) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob,col=GEARCAT)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::facet_wrap(~Code,scale = "free_x") +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
 
 ```

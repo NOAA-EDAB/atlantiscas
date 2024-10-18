@@ -2,6 +2,8 @@
 #'
 #' Pick trips identified as groundfish to find species lengths.
 #' Use to estimate selectivity
+#'
+#' This should be pretty similar to the contnent found in groundfishSelectivity.rmd
 
 
 # pull groundfish data
@@ -26,16 +28,30 @@ if(0) {
   saveRDS(subtrip,here::here("data-raw/subtrip.rds"))
 }
 
+# distinct camsid, vtr_imgid pairs
 subtrip <- readRDS(here::here("data-raw/subtrip.rds")) |>
-  dplyr::as_tibble()
+  dplyr::as_tibble() |>
+  dplyr::mutate(VTR_IMGID = as.character(VTR_IMGID))
 
-#select trips
+# select trips
+# IDNUM in our data = VTR_IMGID
 trips <- gf |>
-  dplyr::distinct(TRIPID) |>
+  dplyr::distinct(IDNUM) |>
   dplyr::pull()
 
-camstrips <- subtrip |>
-  dplyr::filter(VTR_IMGID %in% trips) |>
+# trips in groundfish data
+pairedtrips <-  subtrip |>
+  dplyr::filter(VTR_IMGID %in% trips)
+
+gftripgear <- gf |>
+  dplyr::select(IDNUM,GEARCAT) |>
+  dplyr::distinct()
+
+idsbyGear <- gftripgear |>
+  dplyr::left_join(pairedtrips,by=c("IDNUM"="VTR_IMGID")) |>
+  dplyr::filter(!is.na(CAMSID))
+
+camstrips <- idsbyGear |>
   dplyr::pull(CAMSID)
 
 # now pull lengths
@@ -46,6 +62,8 @@ if(0) {
 
   lengths <- DBI::dbGetQuery(channel,sqlLengths) |>
     dplyr::as_tibble()
+
+  saveRDS(lengths,here::here("data-raw/gflengths.rds"))
 }
 
 lengths <- readRDS(here::here("data-raw/gflengths.rds"))
@@ -64,17 +82,18 @@ gfgroups <- atlantisGroups |>
 
 allgflengths <- gflengths |>
   dplyr::left_join(gfgroups,by = "NESPP3") |>
-  dplyr::filter(Code %in% gfcodes)
+  dplyr::filter(Code %in% gfcodes) |>
+  dplyr::filter(LENGTH < 200)
+
 
 replicatelengths <- allgflengths |>
   tidyr::uncount(NUMLEN)
-
 # over all fleets.
 # to do this by fleet we 'd need to filter out tripid's
 # plot histogram of lengths
 replicatelengths |>
   ggplot2::ggplot() +
-  ggplot2::geom_histogram(ggplot2::aes(x=LENGTH)) +
+  ggplot2::geom_histogram(ggplot2::aes(x=LENGTH),bins=25) +
   ggplot2::facet_wrap(~Code,scale = "free_x") +
   ggplot2::ylab("Number of fish") +
   ggplot2::xlab("length (cm)")
@@ -106,4 +125,65 @@ p <- replicatelengths |>
 
 plotly::ggplotly(p)
 
+## separate by gear type and repeat plots to
+# determine if there is a difference in selectivity based on
+# fishing gear
+gill <- idsbyGear |>
+  dplyr::filter(GEARCAT == "Sink Gillnet") |>
+  dplyr::distinct(GEARCAT,CAMSID)
+trawl <- idsbyGear |>
+  dplyr::filter(GEARCAT == "Bottom Trawl") |>
+  dplyr::distinct(GEARCAT,CAMSID)
 
+# NAs introduced from CAMS trips associated with other GEARCAT type
+gilllengths <- allgflengths |>
+  dplyr::left_join(gill,by = "CAMSID") |>
+  tidyr::uncount(NUMLEN)
+trawllengths <- allgflengths |>
+  dplyr::left_join(trawl,by = "CAMSID") |>
+  tidyr::uncount(NUMLEN)
+
+
+combinedlengths <- rbind(gilllengths,trawllengths) |>
+  dplyr::filter(!is.na(GEARCAT))
+
+
+# plot selectivities by gear
+trawllengths |>
+  dplyr::select(Code,LENGTH) |>
+  dplyr::arrange(Code,LENGTH) |>
+  dplyr::group_by(Code) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::facet_wrap(~Code,scale = "free_x") +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+
+gilllengths |>
+  dplyr::select(Code,LENGTH) |>
+  dplyr::arrange(Code,LENGTH) |>
+  dplyr::group_by(Code) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::facet_wrap(~Code,scale = "free_x") +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+
+# plot prob curve by species
+combinedlengths |>
+  dplyr::select(Code,GEARCAT,LENGTH) |>
+  dplyr::arrange(Code,GEARCAT,LENGTH) |>
+  dplyr::group_by(Code,GEARCAT) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob,col=GEARCAT)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::facet_wrap(~Code,scale = "free_x") +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+
+saveRDS(combinedlengths,here::here("data/groundfishLengthsByGear.rds"))
