@@ -149,6 +149,8 @@ replicatelengths |>
 
 ## Probability curves
 
+Fish over all designated groundfish fleets
+
 ```{r sel2, echo=F, eval=T}
 # plot prob curve by species
 replicatelengths |>
@@ -208,7 +210,7 @@ combinedlengths <- rbind(gilllengths,trawllengths) |>
   dplyr::filter(!is.na(GEARCAT))
 ```
 
-## Bottom Trawl
+### Bottom Trawl
 
 ```{r plotTrawl, echo = F}
 # plot selectivities by gear
@@ -225,7 +227,7 @@ trawllengths |>
   ggplot2::xlab("length (cm)")
 ```
 
-## Gill net
+### Gill net
 
 ```{r plotGill, echo = F}
 gilllengths |>
@@ -242,7 +244,7 @@ gilllengths |>
 ```
 
 
-## Combined
+### Combined
 
 ```{r plotCombibned, echo = F}
 # plot prob curve by species
