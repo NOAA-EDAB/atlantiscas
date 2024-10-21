@@ -138,10 +138,12 @@ trawl <- idsbyGear |>
 # NAs introduced from CAMS trips associated with other GEARCAT type
 gilllengths <- allgflengths |>
   dplyr::left_join(gill,by = "CAMSID") |>
-  tidyr::uncount(NUMLEN)
+  tidyr::uncount(NUMLEN) |>
+  dplyr::filter(!is.na(GEARCAT))
 trawllengths <- allgflengths |>
   dplyr::left_join(trawl,by = "CAMSID") |>
-  tidyr::uncount(NUMLEN)
+  tidyr::uncount(NUMLEN) |>
+  dplyr::filter(!is.na(GEARCAT))
 
 
 combinedlengths <- rbind(gilllengths,trawllengths) |>
