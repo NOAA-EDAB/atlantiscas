@@ -88,6 +88,9 @@ allgflengths <- gflengths |>
 
 replicatelengths <- allgflengths |>
   tidyr::uncount(NUMLEN)
+
+saveRDS(replicatelengths,here::here("data/gfTripLengths.rds"))
+
 # over all fleets.
 # to do this by fleet we 'd need to filter out tripid's
 # plot histogram of lengths
@@ -118,6 +121,27 @@ p <- replicatelengths |>
   dplyr::group_by(Code) |>
   dplyr::mutate(prob = (1:dplyr::n())/dplyr::n()) |>
   ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob, col=Code)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+
+plotly::ggplotly(p)
+
+## combine all lengths for aglobal selectivity
+alllengths <- replicatelengths |>
+  dplyr::select(Code,LENGTH) |>
+  dplyr::mutate(Code = "ALL") |>
+  dplyr::arrange(Code,LENGTH) |>
+  dplyr::group_by(Code) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n())
+
+alllengths |>
+  dplyr::filter(prob>=0.5)
+
+
+p  <-  alllengths
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
   ggplot2::geom_line() +
   ggplot2::geom_point(size = 0.5) +
   ggplot2::ylab("Probability") +

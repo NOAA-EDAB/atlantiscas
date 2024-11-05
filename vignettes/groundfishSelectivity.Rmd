@@ -128,6 +128,7 @@ allgflengths <- gflengths |>
 # AMERICAN  PLAICE have anomolous large lengths. these are removed
 replicatelengths <- allgflengths |>
   tidyr::uncount(NUMLEN) 
+
 ```
 
 ## Histogram of lengths
@@ -184,6 +185,30 @@ p <- replicatelengths |>
 plotly::ggplotly(p)
 
 ```
+
+## Combined lengths across species
+
+```{r allsel, eval = T, echo=F}
+alllengths <- replicatelengths |>
+  dplyr::select(Code,LENGTH) |>
+  dplyr::mutate(Code = "ALL") |>
+  dplyr::arrange(Code,LENGTH) |>
+  dplyr::group_by(Code) |>
+  dplyr::mutate(prob = (1:dplyr::n())/dplyr::n())
+
+p  <-  alllengths |> 
+  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
+  ggplot2::geom_line() +
+  ggplot2::geom_point(size = 0.5) +
+  ggplot2::ylab("Probability") +
+  ggplot2::xlab("length (cm)")
+
+plotly::ggplotly(p)
+
+
+```
+
+
 
 ## Selectivities by GEARCAT
 
