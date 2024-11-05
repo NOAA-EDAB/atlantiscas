@@ -188,6 +188,35 @@ plotly::ggplotly(p)
 
 ## Combined lengths across species
 
+Fitted logistic model as described in Atlantis
+
+$$psel = \frac{1}{1+exp(-selb(length - lsm))}$$
+where
+
+$lsm$ = length at 50% selectivity
+
+$selb$ = steepness of the selectivity curve
+
+```{r logistic, echo = F, eval = T}
+logisticF <- function(x,dataFrame) {
+  lsm <- x[1]
+  selb <- x[2]
+  lengthData <- dataFrame$LENGTH
+  prob <- dataFrame$data
+
+  numer <- 1
+  denom <- 1 + exp(-selb*(lengthData-lsm))
+
+  f <- numer/denom
+
+  rss <- sum((prob-f)^2)
+
+  return(rss)
+}
+
+```
+
+
 ```{r allsel, eval = T, echo=F}
 alllengths <- replicatelengths |>
   dplyr::select(Code,LENGTH) |>
@@ -196,19 +225,43 @@ alllengths <- replicatelengths |>
   dplyr::group_by(Code) |>
   dplyr::mutate(prob = (1:dplyr::n())/dplyr::n())
 
-p  <-  alllengths |> 
-  ggplot2::ggplot(ggplot2::aes(x=LENGTH,y=prob)) +
-  ggplot2::geom_line() +
-  ggplot2::geom_point(size = 0.5) +
+## Length and associated prob
+dataFrame <- alllengths |>
+  dplyr::ungroup() |>
+  dplyr::select(LENGTH) |>
+  dplyr::group_by(LENGTH) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::mutate(p = n/sum(n),
+                data=cumsum(p))
+
+# initial param estimates
+x0 <- c(30,0.1)
+opts <- list("algorithm"="NLOPT_LN_COBYLA",
+             "xtol_rel"=1.0e-04)
+x <- nloptr::nloptr(x0=x0,
+               eval_f=logisticF,
+               lb=c(0,-Inf),
+               ub=c(Inf,Inf),
+               opts = opts,
+               dataFrame=dataFrame)
+
+fitted <- 1/(1 + exp(-x$solution[2]*(dataFrame$LENGTH - x$solution[1])))
+
+dataFrame$fitted <- fitted
+pivot <- dataFrame |>
+  tidyr::pivot_longer(cols = c(data,fitted))
+
+p  <-  pivot |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x=LENGTH,y=value, col = name)) +
+#  ggplot2::geom_point(size = 0.5) +
   ggplot2::ylab("Probability") +
   ggplot2::xlab("length (cm)")
-
-plotly::ggplotly(p)
-
+p
 
 ```
 
-
+Parameter estimates: $\hat{selb}$ = `r x$solution[2]` and $\hat{lsm}$ = `r x$solution[1]`
 
 ## Selectivities by GEARCAT
 

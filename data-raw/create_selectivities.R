@@ -136,8 +136,7 @@ alllengths <- replicatelengths |>
   dplyr::group_by(Code) |>
   dplyr::mutate(prob = (1:dplyr::n())/dplyr::n())
 
-alllengths |>
-  dplyr::filter(prob>=0.5)
+
 
 
 p  <-  alllengths
