@@ -24,6 +24,7 @@ Imports:
     tibble,
     tidyr,
     NEFSCspatial,
-    plotly
+    plotly,
+    nloptr
 Remotes:
     NEFSC/NEFSCspatial
