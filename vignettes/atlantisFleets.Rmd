@@ -197,6 +197,7 @@ Ensuring meaningful representation of fisheries habitat access and vertical effo
   
 
 - `sel_XXX`. (at_harvest.prm)
+  *   Used with constant selectivity
   *   Proportion of of age group selected by the fishery. (Vector of length = #fleets)
   *   Scallops have 1 size class. Currently Set to 1 (Proportion selected)
   
@@ -206,6 +207,21 @@ Ensuring meaningful representation of fisheries habitat access and vertical effo
   *   Selectivity for each fleet
   *   Constant selectivity = 0 (Valid for biomass pools like Scallop. Applies `sel_XXX`)
   *   Logistic selectivity = 2 (Valid for age based groups. Selectivity is based on length). Note Atlantis does not track lengths so they are calculated internally based on a user supplied length-weight relationship
+  
+#### Logistic selectivity
+
+From the manual: The logistic selectivity curve is one of the most commonly applied length-based selectivity options in fisheries (most often used for trawl nets or other gear where the likelihood of capture grows to plateau with larger sizes). It is defined by two parameters – the length at 50% selectivity, also defined as the inflection point `lsm` (YYYsel_lsm, given in cm) and the spread or steepness of the selectivity curve `selb` (YYYsel_b). See Manual for the parameter `selb` affects the shape of the selectivity curve. The selectivity of age group i is calculated as
+
+$$psel_i = \frac{1}{1+exp(-selb(length_i - lsm))}$$
+where
+
+$lsm$ = length at 50% selectivity
+
+$selb$ = steepness of the selectivity curve
+
+$len_i$ is the length of the age group i.
+
+Parameter estimates of $\hat{selb}$ and $\hat{lsm}$ can be found in the [NE groundfish selectivity](articles/groundfishSelectivity.html)
   
   
 ### Calculating length in age-structured groups and biomass pools (from manual)

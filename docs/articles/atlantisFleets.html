@@ -451,6 +451,7 @@ multiplier.</li>
 <li>
 <p><code>sel_XXX</code>. (at_harvest.prm)</p>
 <ul>
+<li>Used with constant selectivity</li>
 <li>Proportion of of age group selected by the fishery. (Vector of
 length = #fleets)</li>
 <li>Scallops have 1 size class. Currently Set to 1 (Proportion
@@ -471,6 +472,29 @@ relationship</li>
 </ul>
 </li>
 </ul>
+<div class="section level4">
+<h4 id="logistic-selectivity">Logistic selectivity<a class="anchor" aria-label="anchor" href="#logistic-selectivity"></a>
+</h4>
+<p>From the manual: The logistic selectivity curve is one of the most
+commonly applied length-based selectivity options in fisheries (most
+often used for trawl nets or other gear where the likelihood of capture
+grows to plateau with larger sizes). It is defined by two parameters –
+the length at 50% selectivity, also defined as the inflection point
+<code>lsm</code> (YYYsel_lsm, given in cm) and the spread or steepness
+of the selectivity curve <code>selb</code> (YYYsel_b). See Manual for
+the parameter <code>selb</code> affects the shape of the selectivity
+curve. The selectivity of age group i is calculated as</p>
+<p><span class="math display">\[psel_i = \frac{1}{1+exp(-selb(length_i -
+lsm))}\]</span> where</p>
+<p><span class="math inline">\(lsm\)</span> = length at 50%
+selectivity</p>
+<p><span class="math inline">\(selb\)</span> = steepness of the
+selectivity curve</p>
+<p><span class="math inline">\(len_i\)</span> is the length of the age
+group i.</p>
+<p>Parameter estimates of <span class="math inline">\(\hat{selb}\)</span> and <span class="math inline">\(\hat{lsm}\)</span> can be found in the <a href="articles/groundfishSelectivity.html">NE groundfish
+selectivity</a></p>
+</div>
 </div>
 <div class="section level3">
 <h3 id="calculating-length-in-age-structured-groups-and-biomass-pools-from-manual">Calculating length in age-structured groups and biomass pools (from
