@@ -477,7 +477,11 @@ gearSpeciesData <- gf |>
   dplyr::group_by(newport,Year,Species) |> 
   dplyr::summarise(mt = sum(InsideLANDED),
                    .groups = "drop")
+```
 
+### Sink gillnet landings
+
+```{r gillneters, echo = F}
 # species makeup for gillnet
 p <- ggplot2::ggplot(gearSpeciesData ) +
   ggplot2::geom_line(ggplot2::aes(x=Year,y=mt,col=Species)) +
