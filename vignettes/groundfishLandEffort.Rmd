@@ -167,7 +167,22 @@ p <- ggplot2::ggplot(speciesLandings) +
 ## Landings by species compare
 
 Compare landings used to force model with landings obtained from CAMS for groundfish fleets.
-Note: OPT - ocean pout, WOL - wolfish, WPF - windowpane flounder are not target species. Additional catch accounted for by other non groundfish trips
+
+Note: OPT - ocean pout, WOL - wolfish, WPF - windowpane flounder are not target species. 
+
+Landings in Atlantis are expressed as milligrams of Nitrogen $mgNs^{-1}$. Landings data are in metric Tons of wet weight $mTyr^{-1}$. To convert between the two: 
+
+$$
+\begin{aligned}
+\text{1 } mgNs^{-1} &= 60*60*24\text{ }mgNday^{-1} \\
+&= 365*60*60*24 \text{ }mgN yr^{-1} \\
+&= 31536000 * 20 * 5.7 \text{ }mg yr^{-1} \text{(wetweight)} \\
+&= 31536000 *20 * 5.7 * 10^{-9}\text{ }MT{yr}^{-1} \\
+&= 3.595104 \text{ }MTyr^{-1}
+\end{aligned}
+$$
+
+where wetweight:C = 20 and C:N = 5.7 (These are set as parameter values in biology.prm as `k_wetdry` and `X_CN` respectively)
 
 ```{r landingspeciestot, echo = F,eval = T}
 cams <- speciesLandings |> 
@@ -201,6 +216,56 @@ p <- plotData |>
   ggplot2::ggplot() +
   ggplot2::geom_line(ggplot2::aes(x=Year,y=landings,color = source)) +
   ggplot2::facet_wrap(~Code,scales = "free_y") +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Landings (Metric Tons)") +
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
+  ggplot2::theme(panel.spacing.x = ggplot2::unit(1,"lines"),
+                 panel.spacing.y = ggplot2::unit(1.5,"lines"))
+
+p
+```
+
+
+## Landings of groundfish trips to total
+
+There are some landings of Cod and Haddock that come from other, non groundfish, trips
+
+```{r compare1, echo = F}
+# reads in all CAMS data
+cleanData <- readRDS(here::here("data-raw/fishing/processedData.rds"))
+
+# split up by groundfish and non groundfish
+gftrips <- cleanData$data |>
+  dplyr::filter(GEARCAT %in% c("Sink Gillnet","Bottom Trawl"),!squidTrip)
+
+squid <- cleanData$data |>
+  dplyr::filter((GEARCAT %in% c("Sink Gillnet","Bottom Trawl") & squidTrip))
+
+other <- cleanData$data |>
+  dplyr::filter(!(GEARCAT %in% c("Sink Gillnet","Bottom Trawl")))
+
+## find landings of species in question for each group
+gf <- gftrips |>
+  dplyr::filter(Code %in% speciesCodes) |>
+  dplyr::group_by(Year,Code) |>
+  dplyr::summarise(landings = sum(InsideLANDED/lbstotons),
+                   .groups = "drop") |>
+  dplyr::mutate(fishery = "Groundfish")
+
+ot <- rbind(other,squid) |>
+  dplyr::filter(Code %in% speciesCodes) |>
+  dplyr::group_by(Year,Code) |>
+  dplyr::summarise(landings = sum(InsideLANDED/lbstotons),
+                   .groups = "drop") |>
+  dplyr::mutate(fishery = "other")
+
+allData <- rbind(gf,ot)
+
+# plot
+p <- allData |>
+  ggplot2::ggplot()+
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landings,col = fishery))+
+  ggplot2::facet_wrap(~Code) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
   ggplot2::ylab("Landings (Metric Tons)") +
   ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
