@@ -16,6 +16,7 @@ knitr::opts_chunk$set(
 library(atlantiscas)
 library(ncdf4)
 library(sf)
+source(here::here("R/get_forcing_ts.r"))
 ```
 
 ## Species
@@ -49,8 +50,10 @@ These GEARCAT(s) associated with groundfish species are:
 ```{r groundfishdata, echo = F}
 # CONVERT TO METRIC TONS
 lbstotons <- 2204.62
-boundaryBoxes <- c(0,23:29)
-threshold1 <- .99 # threshold for filtering data for plots
+mgNs_to_tonsyr <- .27816 # 1MT/year = .278 mgN/sec
+wet_to_C <- 20 # atlantis k_wetdry
+C_to_N <- 5.7 # atlantis 
+
 # gfData <- readRDS(here::here("data/NEGroundfishDataCAMS.rds"))
 # gf <- gfData$neus |>
 #   dplyr::mutate(Year = as.integer(Year)) |>
@@ -94,7 +97,7 @@ ggplot2::ggplot(annualEffort) +
 
 ```
 
-## Effort by Port
+## Effort by Port by box
 
 Partition effort by box.
 
@@ -117,7 +120,7 @@ plotly::ggplotly(p)
 ```
 
 
-# Landings by Port
+## Landings by Port
 
 ```{r landingsport, echo = F,eval = T}
 #plot landings
@@ -144,7 +147,7 @@ plotly::ggplotly(p)
 ```
 
 
-# Landings by Species
+## Landings by Species by port
 
 ```{r landingspecies, echo = F,eval = T}
 p <- ggplot2::ggplot(speciesLandings) +
@@ -159,4 +162,50 @@ p <- ggplot2::ggplot(speciesLandings) +
 
   plotly::ggplotly(p)
   
+```
+
+## Landings by species compare
+
+Compare landings used to force model with landings obtained from CAMS for groundfish fleets.
+Note: OPT - ocean pout, WOL - wolfish, WPF - windowpane flounder are not target species. Additional catch accounted for by other non groundfish trips
+
+```{r landingspeciestot, echo = F,eval = T}
+cams <- speciesLandings |> 
+  dplyr::group_by(Year,Code) |> 
+  dplyr::summarise(landings = sum(landings),
+                   .groups = "drop") |> 
+  dplyr::mutate(source = "CAMS")
+
+# this is mgN/day
+forced <- get_forcing_ts(path="https://raw.githubusercontent.com/NEFSC/READ-EDAB-neusAtlantis/refs/heads/master/currentVersion/CatchFiles/total_catch.ts")
+
+# forced = mgN/second - daily
+# Daily input is in mgN/s. Daily value would by mgN/s * 60*60*24
+forcedData <- forced |> 
+  dplyr::rename(Code = Variable) |> 
+  dplyr::filter(Code %in% speciesCodes) |> 
+  dplyr::mutate(Year = as.integer(1964+ floor(Time/365))) |> 
+  dplyr::group_by(Year,Code) |> 
+  # summing mgN/s -> mgN/year
+  dplyr::summarise(landings = sum(Value*60*60*24),
+                   .groups = "drop") |> 
+  # now need to convert mgN/year to mt/year
+  # convert N to wet weight (20*5.7) then mg to tons 10^9
+  dplyr::mutate(landings = landings*wet_to_C*C_to_N/10^9) |> 
+  dplyr::filter(Year >= 1996)  |> 
+  dplyr::mutate(source = "Forced")
+
+plotData <- rbind(cams,forcedData) 
+
+p <- plotData |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x=Year,y=landings,color = source)) +
+  ggplot2::facet_wrap(~Code,scales = "free_y") +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
+  ggplot2::ylab("Landings (Metric Tons)") +
+  ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
+  ggplot2::theme(panel.spacing.x = ggplot2::unit(1,"lines"),
+                 panel.spacing.y = ggplot2::unit(1.5,"lines"))
+
+p
 ```
