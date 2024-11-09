@@ -265,7 +265,7 @@ allData <- rbind(gf,ot)
 p <- allData |>
   ggplot2::ggplot()+
   ggplot2::geom_line(ggplot2::aes(x=Year,y=landings,col = fishery))+
-  ggplot2::facet_wrap(~Code) +
+  ggplot2::facet_wrap(~Code,scales = "free_y") +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 90)) +
   ggplot2::ylab("Landings (Metric Tons)") +
   ggplot2::guides(col=ggplot2::guide_legend(title="Port")) +
